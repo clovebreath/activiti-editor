@@ -1,0 +1,22 @@
+html,body{
+    height: 98%;
+}
+.bpmn-list{
+    font-size: 14px;
+    z-index: auto;
+}
+.bpmn-icon{
+    vertical-align: middle;
+    margin-right: 3px;
+}
+#bpmn-menu-area{
+    position: absolute;
+    left:0;
+    top:0;
+    padding: 5px 0;
+    display: none;
+}
+.bpmn-menu{
+    display: inline-block;
+    cursor:pointer;
+}
