@@ -18,7 +18,7 @@
         <div data-options="region:'west'" style="width:300px;height: 100%">
             <div class="easyui-layout"  data-options="fit:true">
                 <div class="easyui-accordion" data-options="region:'north',title:'Items',collapsible:false" height="auto">
-                    <div title="Events">
+                    <div title="Events" style="width: 100%">
                         <ul>
                             <li id="bpmn-event-start" class="easyui-draggable bpmn-list">
                                 <img class="bpmn-icon" src="./statics/images/icons/startevent/none.png">
@@ -30,7 +30,7 @@
                             </li>
                         </ul>
                     </div>
-                    <div title="Activities">
+                    <div title="Activities" style="width: 100%">
                         <ul>
                             <li id="bpmn-task-user" class="easyui-draggable bpmn-list">
                                 <img class="bpmn-icon" src="./statics/images/icons/activity/list/type.user.png">
@@ -38,7 +38,7 @@
                             </li>
                         </ul>
                     </div>
-                    <div title="Gateways">
+                    <div title="Gateways" style="width: 100%">
                         <ul>
                             <li id="bpmn-gateway-exclusive" class="easyui-draggable bpmn-list">
                                 <img class="bpmn-icon" src="./statics/images/icons/gateway/exclusive.databased.png">
@@ -47,7 +47,7 @@
                         </ul>
                     </div>
                 </div>
-                <div id="bpum-properties" data-options="region:'center',collapsible:false,title:'Properties'">
+                <div id="bpum-properties" data-options="region:'center',collapsible:false,title:'Properties'" height="auto">
 
                 </div>
             </div>
@@ -126,28 +126,57 @@
     //从菜单栏拖拽停止的事件
     function iconDragStop(e){
         var canvasBottom=$("#bpmn-svg").height();
+        var dragEvent = d3.drag()
+            .on("start", onSvgItemDragStart)
+            .on("drag", onSvgItemDrag)
+            .on("end", onSvgItemDragEnd);
         //在画布范围内
         if(e.data.left>=300 && e.data.top<canvasBottom){
-            var typeIndex=0;
             switch(e.data.target.id){
                 case "bpmn-event-start":
                 case "bpmn-event-end":
                     appendCircle(bpmnSvg,e.data.left-300,e.data.top,svgCircleR,svgStroke,svgStorkeWidth,svgFill)
-                        .attr("onclick","showMiniMenu(this)");
+                        .attr("onclick","showMiniMenu(this)")
+                        .call(dragEvent.subject(
+                            function() {
+                                var t = d3.select(this);
+                                return {
+                                    x: t.attr("cx"),
+                                    y: t.attr("cy")
+                                };
+                            }));
                     break;
                 case "bpmn-task-user":
                     appendRect(bpmnSvg,e.data.left-300,e.data.top,svgRectWidth,svgRectHeight,svgStroke,svgStorkeWidth,svgFill)
-                        .attr("onclick","showMiniMenu(this)");
+                        .attr("onclick","showMiniMenu(this)")
+                        .call(dragEvent.subject(
+                            function() {
+                                var t = d3.select(this);
+                                return {
+                                    x: t.attr("x"),
+                                    y: t.attr("y")
+                                };
+                            }));
                     break;
                 case "bpmn-gateway-exclusive":
-                    appendPolygon(bpmnSvg,getPolygonPoints(e.data.left-300,e.data.top),svgStroke,svgStorkeWidth,svgFill)
-                        .attr("onclick","showMiniMenu(this)");
+                    appendPolygon(bpmnSvg,getGatewayPoints(e.data.left-300,e.data.top),svgStroke,svgStorkeWidth,svgFill)
+                        .attr("onclick","showMiniMenu(this)").attr("transform","translate(0,0)")
+                        .call(dragEvent.subject(
+                            function() {
+                                var t = d3.select(this);
+                                return {
+                                    x:0,
+                                    y:0
+                                };
+                            }));
                     break;
                 default:
 
                     break;
             }
-            appendLine(bpmnSvg,100,100,200,200,svgStroke,svgStorkeWidth).attr("marker-end","url(#arrow)");;
+
+            appendLine(bpmnSvg,100,100,200,200,svgStroke,svgStorkeWidth).attr("marker-end","url(#arrow)");
+
 //          bpmnSvg.append('polygon').attr("points", '70,10 130,10 100,50').attr("fill",'none').attr("stroke",'#520').attr('stroke-width',4);
 //          appendPolygon(bpmnSvg,'70,10 130,10 100,50',svgStroke,svgStorkeWidth,svgFill);
         }
@@ -199,10 +228,59 @@
         return svgPolygon;
     }
     //根据左上角坐标计算gateway的四个点
-    function getPolygonPoints(x,y){
+    function getGatewayPoints(x, y){
         var points=(x+20)+","+y+" "+x+","+(20+y)+" "+(x+20)+","+(y+40)+" "+(x+40)+","+(20+y);
         return points;
     }
+    //计算gateway平移后的点
+    function transformGatewayPoints(points,transformX,transformY) {
+        var result="";
+        for(var i=0;i<points.length;i++){
+            points[i].x+=transformX;
+            points[i].y+=transformY;
+            result+=points[i].x+","+points[i].y+" ";
+        }
+        return result;
+    }
+
+    //svg元素移动开始前的事件
+    function onSvgItemDragStart(){
+        $("#bpmn-menu-area").hide();
+    }
+    //SVG元素移动的事件
+    function onSvgItemDrag() {
+        switch (this.tagName){
+            case "circle":
+                d3.select(this).attr("cx",d3.event.x ).attr("cy",d3.event.y );
+                break;
+            case "rect":
+                d3.select(this).attr("x",d3.event.x ).attr("y",d3.event.y );
+                break;
+            case "polygon":
+                d3.select(this).attr("transform", "translate(" +
+                    (this.x = d3.event.x) + "," + (this.y = d3.event.y)+ ")");
+                break;
+        }
+    }
+    //svg元素移动完的事件
+    function onSvgItemDragEnd() {
+        switch (this.tagName){
+            case "circle":
+            case "rect":
+                break;
+            case "polygon":
+                var transform = this.getAttribute("transform").split(",");
+                var transformX = transform[0].replace(/[^0-9.-]/ig,"");
+                var transformY = transform[1].replace(/[^0-9.-]/ig,"");
+                d3.select(this).attr("points",transformGatewayPoints(this.points,parseFloat(transformX),parseFloat(transformY)))
+                    .attr("transform","translate(0,0)");
+                break;
+            default:
+                break;
+        }
+        showMiniMenu(this);
+    }
+
     //点击时显示小菜单
     function showMiniMenu(element){
         //设置被选中的item
