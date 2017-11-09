@@ -114,13 +114,12 @@ function iconDragStop(e){
             case "bpmn-gateway-exclusive":
                 appendPolygon(bpmnSvg,getGatewayPoints(e.data.left-300,e.data.top),svgStroke,svgStorkeWidth,svgFill)
                     .attr("type","bpmn-gateway-exclusive")
-                    .attr("transform","translate(0,0)")
                     .call(dragEvent.subject(
                         function() {
                             var t = d3.select(this);
                             return {
-                                x:0,
-                                y:0
+                                x:this.getBBox().x,
+                                y:this.getBBox().y
                             };
                         }));
                 break;
@@ -410,8 +409,7 @@ function onSvgItemDrag() {
             d3.select(this).attr("x",d3.event.x ).attr("y",d3.event.y );
             break;
         case "polygon":
-            d3.select(this).attr("transform", "translate(" +
-                (this.x = d3.event.x) + "," + (this.y = d3.event.y)+ ")");
+            d3.select(this).attr("points",getGatewayPoints(d3.event.x, d3.event.y));
             break;
     }
     reDrowPath(this);
@@ -421,14 +419,7 @@ function onSvgItemDragEnd() {
     switch (this.tagName){
         case "circle":
         case "rect":
-            break;
         case "polygon":
-            var transform = this.getAttribute("transform").split(",");
-            var transformX = transform[0].replace(/[^0-9.-]/ig,"");
-            var transformY = transform[1].replace(/[^0-9.-]/ig,"");
-            d3.select(this).attr("points",transformGatewayPoints(this.points,parseFloat(transformX),parseFloat(transformY)))
-                .attr("transform","translate(0,0)");
-            break;
         default:
             break;
     }
