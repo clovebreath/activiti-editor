@@ -20,3 +20,17 @@ html,body{
     display: inline-block;
     cursor:pointer;
 }
+.bpmn-properties-table{
+    width: 100%;
+    text-align: center;
+    border-right:1px solid lightskyblue;
+    border-bottom:1px solid lightskyblue;
+}
+.bpmn-properties-table tr{
+    min-height:20px;
+}
+.bpmn-properties-table td,.bpmn-properties-table th{
+    text-align: center;
+    border-left:1px solid lightskyblue;
+    border-top:1px solid lightskyblue;
+}

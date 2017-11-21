@@ -7,9 +7,11 @@ var svgStorkeWidth=1;
 var svgRectWidth=80;
 var svgRectHeight=60;
 var svgFill="lightgrey";
-
+var bpmnHeader="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+    "<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:activiti=\"http://activiti.org/bpmn\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:omgdc=\"http://www.omg.org/spec/DD/20100524/DC\" xmlns:omgdi=\"http://www.omg.org/spec/DD/20100524/DI\" typeLanguage=\"http://www.w3.org/2001/XMLSchema\" expressionLanguage=\"http://www.w3.org/1999/XPath\" targetNamespace=\"http://www.activiti.org/test\">\n";
+var bpmnFooter="</definitions>";
 //初始化
-$(function(){
+function initDesigner(){
     bpmnSvg=d3.select("#bpmn-svg").attr("uuid",Math.uuid());
     var defs = bpmnSvg.append("defs");
     //定义箭头
@@ -34,34 +36,52 @@ $(function(){
     $('#bpmn-menu-arrow').draggable({
         revert:true,cursor:'pointer',proxy:'clone',onStopDrag:arrowDragStop
     });
-});
+}
 
 //连线按钮拖拽停止事件
 function arrowDragStop(e){
     var postionX = e.pageX-$('#bpmn-svg').offset().left;
     var positonY = e.pageY-$('#bpmn-svg').offset().top;
+
     if( postionX>0 && positonY>0 ){
-        var tempItem=appendCircle(bpmnSvg,300,300,svgCircleR,svgStroke,svgStorkeWidth,svgFill)
-            .attr("type","bpmn-event-start")
-            .call(d3.drag()
-                .on("start", onSvgItemDragStart)
-                .on("drag", onSvgItemDrag)
-                .on("end", onSvgItemDragEnd).subject(
-                    function() {
-                        var t = d3.select(this);
-                        return {
-                            x:t.cx,
-                            y:t.cy
-                        };
-                    })
-            );
-        drowFlow(selectSvgItem,tempItem.node());
+        var targetItem=getElementByPosition(postionX,positonY);
+        if(targetItem!==null){
+            drowFlow(selectSvgItem,targetItem);
+        }
     }
+}
+
+//获取svg在给定坐标处的元素(有多个时选中最上层)
+function getElementByPosition(svgX,svgY) {
+    var tempItem=null;
+    d3.selectAll("circle,rect,polygon").each(
+        function () {
+            var box=this.getBBox();
+            if(box.x<svgX && svgX<(box.x+box.width) && box.y<svgY && svgY<(box.y+box.height)){
+                tempItem=this;
+                console.log(this);
+            }
+        }
+    )
+    return tempItem;
 }
 
 //删除元素
 function deleteItem() {
+    //删除对应表格
+    var tempUuid=selectSvgItem.getAttribute("uuid");
+    $("table[uuid="+tempUuid+"]").delete();
+
+    //删除有关系的连线
+    d3.selectAll("path").each(
+        function (d,i) {
+            if(this.getAttribute("source-ref")===tempUuid||this.getAttribute("target-ref")===tempUuid){
+                d3.select(this).remove();
+            }
+        }
+    );
     selectSvgItem.remove();
+
     $("#bpmn-menu-area").hide();
 }
 
@@ -128,18 +148,21 @@ function iconDragStop(e){
         }
     }
 }
+
 //生成被拖拽的对象
 function getObj(source){
     var p = $('<div style="border:1px solid #ccc;width:200px"></div>');
     p.html($(source).html()).appendTo('body');
     return p;
 }
+
 //获取指定元素的中心点
 function getMidPoint(item) {
     var pointX=item.getBBox().x+item.getBBox().width/2;
     var pointY=item.getBBox().y+item.getBBox().height/2;
     return {x:pointX,y:pointY};
 }
+
 //判断两个元素之间的连线的类型，U、L、I、Z.
 function getFlowType(itemStart,itemEnd) {
     var boxStart=itemStart.getBBox();
@@ -181,8 +204,9 @@ function getFlowType(itemStart,itemEnd) {
         }
     }
 }
+
 //在两个元素之间画连接线
-function drowFlow(itemStart,itemEnd){debugger
+function drowFlow(itemStart,itemEnd){
     var flowType = getFlowType(itemStart,itemEnd);
     var boxStart=itemStart.getBBox();
     var boxEnd=itemEnd.getBBox();
@@ -190,7 +214,6 @@ function drowFlow(itemStart,itemEnd){debugger
     var y11 = boxStart.y, y12 = boxStart.y + boxStart.height, y21 = boxEnd.y, y22 = boxEnd.y + boxEnd.height;
     var x1m = (x11 + x12) / 2, x2m = (x21 + x22) / 2, y1m = (y11 + y12) / 2, y2m = (y21 + y22) / 2;
     console.log(flowType,itemStart.getAttribute("uuid"),itemEnd.getAttribute("uuid"));
-    debugger
     switch (flowType){
         case "I":
             if(x1m===x2m){//x轴上中心点同一轨迹
@@ -264,6 +287,7 @@ function drowFlow(itemStart,itemEnd){debugger
         default:break;
     }
 }
+
 function appendCircle(svgContainer,cx,cy,r,stroke,strokeWidth,fill){
     var svgCir = svgContainer.append("circle")
         .attr("cx",cx)
@@ -272,10 +296,11 @@ function appendCircle(svgContainer,cx,cy,r,stroke,strokeWidth,fill){
         .attr("stroke",stroke)
         .attr("stroke-width",strokeWidth)
         .attr("fill",fill)
-        .attr("onclick","showMiniMenu(this)")
+        .attr("onclick","clickSvgElement(this)")
         .attr("uuid",Math.uuid());
     return svgCir;
 }
+
 function appendPath(svgContainer,d,stroke,strokeWidth) {
     var svgPath = svgContainer.append("path")
         .attr("d",d)
@@ -286,6 +311,7 @@ function appendPath(svgContainer,d,stroke,strokeWidth) {
         .attr("uuid",Math.uuid());
     return svgPath;
 }
+
 function appendLine(svgContainer,x1,y1,x2,y2,stroke,strokeWidth){
     var svgLine = svgContainer.append("line")
         .attr("x1",x1)
@@ -298,6 +324,7 @@ function appendLine(svgContainer,x1,y1,x2,y2,stroke,strokeWidth){
         .attr("uuid",Math.uuid());
     return svgLine;
 }
+
 function appendRect(svgContainer,x,y,width,height,stroke,strokeWidth,fill){
     var svgRect = svgContainer.append("rect")
         .attr("x",x)
@@ -307,25 +334,28 @@ function appendRect(svgContainer,x,y,width,height,stroke,strokeWidth,fill){
         .attr("stroke",stroke)
         .attr("stroke-width",strokeWidth)
         .attr("fill",fill)
-        .attr("onclick","showMiniMenu(this)")
+        .attr("onclick","clickSvgElement(this)")
         .attr("uuid",Math.uuid());
     return svgRect;
 }
+
 function appendPolygon(svgContainer,points,stroke,strokeWidth,fill){
     var svgPolygon = svgContainer.append("polygon")
         .attr("points",points)
         .attr("stroke",stroke)
         .attr("stroke-width",strokeWidth)
         .attr("fill",fill)
-        .attr("onclick","showMiniMenu(this)")
+        .attr("onclick","clickSvgElement(this)")
         .attr("uuid",Math.uuid());
     return svgPolygon;
 }
+
 //根据左上角坐标计算gateway的四个点
 function getGatewayPoints(x, y){
     var points=(x+20)+","+y+" "+x+","+(20+y)+" "+(x+20)+","+(y+40)+" "+(x+40)+","+(20+y);
     return points;
 }
+
 //计算gateway平移后的点
 function transformGatewayPoints(points,transformX,transformY) {
     var result="";
@@ -336,27 +366,27 @@ function transformGatewayPoints(points,transformX,transformY) {
     }
     return result;
 }
+
 //移动元素后重新绘制连接线
 function reDrowPath(item) {
     d3.selectAll("path").each(
         function (d,i) {
             if(this.getAttribute("source-ref")===item.getAttribute("uuid")){
-                var condition="[uuid="+this.getAttribute('target-ref')+"]";
+                var condition="[type][uuid="+this.getAttribute('target-ref')+"]";
                 var otherItem=$(condition)[0];
-                console.log(condition,otherItem,item);
                 drowFlow(item,otherItem);
                 d3.select(this).remove();
             }
             if(this.getAttribute("target-ref")===item.getAttribute("uuid")){
-                var condition="[uuid="+this.getAttribute('source-ref')+"]";
+                var condition="[type][uuid="+this.getAttribute('source-ref')+"]";
                 var otherItem=$(condition)[0];
-                console.log(condition,otherItem,item);
                 drowFlow(otherItem,item);
                 d3.select(this).remove();
             }
         }
     );
 }
+
 //给定起点和终点，计算path的d值,Z型
 function getLPointPath(startPoint,endPoint) {
     var pathD="M";
@@ -365,11 +395,13 @@ function getLPointPath(startPoint,endPoint) {
     pathD+=endPoint.x+" "+endPoint.y;
     return pathD;
 }
+
 //给定起点和终点，计算path的d值,U型
 function getUPointPath(startPoint,endPoint) {
     var pathD="M";
 
 }
+
 //给定起点和终点，计算path的d值,N型
 function getNPointPath(startPoint,endPoint) {
     var pathD="M";
@@ -379,6 +411,7 @@ function getNPointPath(startPoint,endPoint) {
     pathD+=endPoint.x+" "+endPoint.y;
     return pathD;
 }
+
 //给定起点和终点，计算path的d值,Z型
 function getZPointPath(startPoint,endPoint) {
     var pathD="M";
@@ -388,6 +421,7 @@ function getZPointPath(startPoint,endPoint) {
     pathD+=endPoint.x+" "+endPoint.y;
     return pathD;
 }
+
 //给定起点和终点，计算path的d值,I型
 function getIPointPath(startPoint,endPoint) {
     var pathD="M";
@@ -395,10 +429,12 @@ function getIPointPath(startPoint,endPoint) {
     pathD+=endPoint.x+" "+endPoint.y;
     return pathD;
 }
+
 //svg元素移动开始前的事件
 function onSvgItemDragStart(){
     $("#bpmn-menu-area").hide();
 }
+
 //SVG元素移动的事件
 function onSvgItemDrag() {
     switch (this.tagName){
@@ -414,6 +450,7 @@ function onSvgItemDrag() {
     }
     reDrowPath(this);
 }
+
 //svg元素移动完的事件
 function onSvgItemDragEnd() {
     switch (this.tagName){
@@ -423,16 +460,7 @@ function onSvgItemDragEnd() {
         default:
             break;
     }
-    showMiniMenu(this);
-}
-
-//鼠标移动到目标元素上以后的事件
-function onMouseOverItem(element) {
-    targetSvgItem=element;
-}
-//鼠标移出目标元素以后的事件
-function onMouseOutItem() {
-    targetSvgItem=null;
+    clickSvgElement(this);
 }
 
 //点击时显示小菜单
@@ -446,11 +474,84 @@ function showMiniMenu(element){
     $("#bpmn-menu-area").css("left",outingBox.x);
     $("#bpmn-menu-area").css("top",outingBox.y+outingBox.height);
 }
+
+//点击时显示对应表格
+function showPropertiesTable(element) {
+    var itemUuid=element.getAttribute("uuid");
+    for(var uuid of tableUuids){
+        if(uuid===itemUuid){
+            showUuidTable(uuid);
+            return;
+        }
+    }
+    //如果没有对应表格
+    appendNewTable(itemUuid);
+}
+
+//元素点击事件
+function clickSvgElement(element) {
+    showMiniMenu(element);
+    showPropertiesTable(element);
+}
+
+//绑定数据
+function dataBind() {
+    //TODO 数据的绑定，是否利用d3.js把数据统一绑定到svg元素上，还是说直接在页面上以表格的形式存在。
+}
+
+//获取svg对应的bpmn
+function getBpmnOfSvg(){
+
+    //TODO 将svg文档转换为bpmn文档。
+    var svgObj = document.getElementById("bpmn-svg").children;
+    var bpmnContent=bpmnHeader;
+    for(var childItem of svgObj){
+        switch (childItem.getAttribute("type")){
+            case "bpmn-event-start":
+                var xml=getItemBpmn(childItem,"<startEvent","></startEvent>");
+                bpmnContent+=xml+"\n";
+                break;
+            case "bpmn-event-end":
+                var xml=getItemBpmn(childItem,"<endEvent","></endEvent>");
+                bpmnContent+=xml+"\n";
+                break;
+            case "bpmn-task-user":
+                var xml=getItemBpmn(childItem,"<userTask","></userTask>");
+                bpmnContent+=xml+"\n";
+                break;
+            case "bpmn-gateway-exclusive":
+                var xml=getItemBpmn(childItem,"<exclusiveGateway","></exclusiveGateway>");
+                bpmnContent+=xml+"\n";
+                break;
+            default:
+                break;
+        }
+    }
+    bpmnContent+=bpmnFooter;
+    return bpmnContent;
+}
+
+function getItemBpmn(item,startXml,endXml) {
+    var tempUuid=item.getAttribute("uuid");
+    var tempItemXml=startXml;
+    if($("table[uuid="+tempUuid+"]").length==1){
+        //有与之相对应的table
+        var itemDatas = $("table[uuid="+tempUuid+"]").eq(0).find("td");
+        for(var i=0;i<itemDatas.length;i++){
+            tempItemXml=tempItemXml+" "+itemDatas.eq(i++).text()+"=\""+itemDatas.eq(i).text()+"\"";
+        }
+    }
+    tempItemXml+=endXml;
+    return tempItemXml;
+}
+
+//TODO 将下方法改成获取bpmn文件的方法
 //获取svg的xml文件
 function getSvgFile(){
-    var svgContext = d3.select("#svg-container").html();
-    funDownload(svgContext,"bpmn.svg");
+    // var svgContext = d3.select("#svg-container").html();
+    funDownload(getBpmnOfSvg(),"bpmn.svg");
 }
+
 //下载方法
 function funDownload(content, filename) {
     // 创建隐藏的可下载链接

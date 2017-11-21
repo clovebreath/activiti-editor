@@ -5,14 +5,16 @@
   Time: 10:51
   To change this template use File | Settings | File Templates.
 --%>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<!DOCTYPE html>
+<%@ page language="java" pageEncoding="UTF-8"%>
+<!DOCTYPE HTML>
 <html>
 <head>
     <title>Designer</title>
     <%@include file="WEB-INF/head.jsp" %>
-    <script type="text/javascript" src="statics/js/designer.js"></script>
     <script type="text/javascript" src="statics/js/uuid.js"></script>
+    <script type="text/javascript" src="statics/js/xmlToJson.js"></script>
+    <script type="text/javascript" src="statics/js/designer.js"></script>
+    <script type="text/javascript" src="statics/js/freetable.js"></script>
 </head>
 <body>
     <div class="easyui-layout" style="width:auto;height: 100%;">
@@ -38,6 +40,7 @@
                                 <img class="bpmn-icon" src="./statics/images/icons/activity/list/type.user.png">
                                 User Task
                             </li>
+                            <li></li>
                         </ul>
                     </div>
                     <div title="Gateways" style="width: 100%">
@@ -46,18 +49,24 @@
                                 <img class="bpmn-icon" src="./statics/images/icons/gateway/exclusive.databased.png">
                                 Exclusive Gateway
                             </li>
+                            <li></li>
                         </ul>
                     </div>
                 </div>
-                <div id="bpum-properties" data-options="region:'center',collapsible:false,title:'Properties'" height="auto">
-
+                <div id="bpmn-properties" height="auto" region="center"
+                     data-options="collapsible:false,title:'Properties',tools:[{iconCls:'icon-save',handler:getTableFile}]">
+                    <table id="default-table" class="bpmn-properties-table">
+                        <tr><th>Key</th><th>Value</th></tr>
+                        <tr><td>Id</td><td> </td></tr>
+                        <tr><td>Name</td><td> </td></tr>
+                    </table>
                 </div>
             </div>
         </div>
         <div data-options="region:'center'">
             <div id="inner-pannel" class="easyui-layout" fit="true">
                 <div id="bpmn-canvas" class="easyui-droppable" data-options=
-                        "region:'center',title:'Canvas',accept:'.bpmn-list,#bpmn-menu-arrow',tools:[{iconCls:'icon-save',handler:getSvgFile}]">
+                        "region:'center',title:'Canvas',accept:'.bpmn-list',tools:[{iconCls:'icon-save',handler:getSvgFile}]">
                     <div style="position:relative;width: 100%;height: 100%">
                         <div id="svg-container" style="width: 100%;height: 100%">
                             <svg id="bpmn-svg" style="width:100%;height:100%" xmlns="http://www.w3.org/2000/svg" version="1.1">
@@ -78,3 +87,11 @@
     </div>
 </body>
 </html>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        console.log("init");
+        initDesigner();
+        initFreeTable();
+    });
+</script>
