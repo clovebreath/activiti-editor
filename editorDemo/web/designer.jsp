@@ -13,6 +13,7 @@
     <%@include file="WEB-INF/head.jsp" %>
     <script type="text/javascript" src="statics/js/uuid.js"></script>
     <script type="text/javascript" src="statics/js/xmlToJson.js"></script>
+    <script type="text/javascript" src="statics/js/getBpmn.js"></script>
     <script type="text/javascript" src="statics/js/designer.js"></script>
     <script type="text/javascript" src="statics/js/freetable.js"></script>
 </head>
@@ -56,9 +57,9 @@
                 <div id="bpmn-properties" height="auto" region="center"
                      data-options="collapsible:false,title:'Properties',tools:[{iconCls:'icon-save',handler:getTableFile}]">
                     <table id="default-table" class="bpmn-properties-table">
-                        <tr><th>Key</th><th>Value</th></tr>
-                        <tr><td>Id</td><td> </td></tr>
-                        <tr><td>Name</td><td> </td></tr>
+                        <tr><th width="120px">KEY</th><th>VALUE</th></tr>
+                        <tr><td>id</td><td> </td></tr>
+                        <tr><td>name</td><td> </td></tr>
                     </table>
                 </div>
             </div>
@@ -90,7 +91,6 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        console.log("init");
         initDesigner();
         initFreeTable();
     });

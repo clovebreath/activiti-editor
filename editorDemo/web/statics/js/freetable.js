@@ -4,13 +4,15 @@ var processUuid;
 //页面初始化
 function initFreeTable(){
     //BPMN PROCESS的UUID
-    processUuid=Math.uuid();
+    processUuid=$("#bpmn-svg").attr("uuid");
     tableUuids.push(processUuid);
-    $("#default-table").attr("uuid",tableUuids[0]);
-    $("#default-table").append("<tr><td>UUID</td><td>"+tableUuids[0]+"</td></tr>");
+    //添加isExecutable属性
+    $("#default-table").append("<tr><td>isExecutable</td><td>true</td></tr>");
     //表格可编辑
     $("#default-table td").click(editableTd);
-    $("").attr("onclick","svgClick(e)");
+    //初始表格id设置
+    $("#default-table").attr("uuid",processUuid).attr("id",processUuid);
+
 }
 
 //表格点击事件
@@ -23,10 +25,8 @@ function editableTd(e) {
     //TODO 表格属性扩展，时间、文本、多行文本、选择等
     var preText = tdObj.html();//当前文本内容
     var inputObj = $("<input type='text' />");//创建输入框
-
     tdObj.html(""); //清空td中的所有元素
-    inputObj.width(tdObj.width()).height(tdObj.height())
-        .css({border:"0px"}).val(preText).appendTo(tdObj)
+    inputObj.width(tdObj.width()).height(tdObj.height()).val(preText).appendTo(tdObj)
         //用trigger方法触发事件
         .trigger("focus").trigger("select");
     inputObj.keyup(function(event){
@@ -61,16 +61,38 @@ function appendNewRow(){
 
 //新建表格
 function appendNewTable(uuid) {
-    var newTable = $("#default-table").clone(true);
-    newTable.attr("uuid",uuid);
+    var newTable = $("#"+processUuid).clone(true);
 
     //TODO newTable的ID需要更改
-    newTable.find("td").eq(5).text(uuid);
-    newTable.attr("id","uuid");
+
+    newTable.attr("id",uuid).attr("uuid",uuid);
+
+    //修改复制过来的表格的数据
+    var i=0;
+    newTable.find("td").eq(1).text("");
+    newTable.find("td").eq(3).text("");
+    while(i<newTable.find("tr").length){
+        if(i<3){
+            i++;
+        }else{
+            newTable.find("tr").eq(i++).remove();
+        }
+    }
 
     tableUuids.push(uuid);
     $('#bpmn-properties').append(newTable);
     showUuidTable(uuid);
+}
+
+//刪除表格
+function deleteTableByUuid(uuid){
+    $("table[uuid="+uuid+"]").remove();
+    for(var i=0; i<tableUuids.length; i++) {
+        if(tableUuids[i] == uuid) {
+            tableUuids.splice(i, 1);
+            break;
+        }
+    }
 }
 
 //隐藏其他表格，展示uuid对应表格
@@ -87,9 +109,6 @@ function showUuidTable(uuid) {
     }
 }
 
-function svgClick(e) {
-    e.stopPropagation();
-}
 //TODO 修改下载表格的方法
 //下载自定义的表格
 function getTableFile(){

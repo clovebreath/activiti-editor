@@ -34,3 +34,8 @@ html,body{
     border-left:1px solid lightskyblue;
     border-top:1px solid lightskyblue;
 }
+.bpmn-properties-table input{
+    text-align: center;
+    min-height:1em;
+    border:0px;
+}
