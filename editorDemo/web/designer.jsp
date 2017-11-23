@@ -56,11 +56,6 @@
                 </div>
                 <div id="bpmn-properties" height="auto" region="center"
                      data-options="collapsible:false,title:'Properties',tools:[{iconCls:'icon-save',handler:getTableFile}]">
-                    <table id="default-table" class="bpmn-properties-table">
-                        <tr><th width="120px">KEY</th><th>VALUE</th></tr>
-                        <tr><td>id</td><td> </td></tr>
-                        <tr><td>name</td><td> </td></tr>
-                    </table>
                 </div>
             </div>
         </div>
@@ -70,7 +65,7 @@
                         "region:'center',title:'Canvas',accept:'.bpmn-list',tools:[{iconCls:'icon-save',handler:getSvgFile}]">
                     <div style="position:relative;width: 100%;height: 100%">
                         <div id="svg-container" style="width: 100%;height: 100%">
-                            <svg id="bpmn-svg" style="width:100%;height:100%" xmlns="http://www.w3.org/2000/svg" version="1.1">
+                            <svg id="bpmn-svg" type="bpmn-process" style="width:100%;height:100%" xmlns="http://www.w3.org/2000/svg" version="1.1">
                             </svg>
                         </div>
                         <div id="bpmn-menu-area">

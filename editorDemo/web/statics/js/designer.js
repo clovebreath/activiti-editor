@@ -1,12 +1,22 @@
+//定义bpmn元素的常量
+const BPMN_EVENT_START="bpmn-event-start";
+const BPMN_EVENT_END="bpmn-event-end";
+const BPMN_TASK_USER="bpmn-task-user";
+const BPMN_GATEWAY_EXCLUSIVE="bpmn-gateway-exclusive";
+const BPMN_SEQUENCE_FLOW="bpmn-sequence-flow";
+const BPMN_PROCESS="bpmn-process";
+
+const svgCircleR=20;
+const svgStroke="black";
+const svgStorkeWidth=1;
+const svgRectWidth=80;
+const svgRectHeight=60;
+const svgFill="lightgrey";
+
 var bpmnSvg=null;
 var selectSvgItem=null;
 var targetSvgItem=null;
-var svgCircleR=20;
-var svgStroke="black";
-var svgStorkeWidth=1;
-var svgRectWidth=80;
-var svgRectHeight=60;
-var svgFill="lightgrey";
+
 //初始化
 function initDesigner(){
     bpmnSvg=d3.select("#bpmn-svg").attr("uuid",Math.uuid()).attr("onclick","onSvgAreaClick()");
@@ -93,9 +103,9 @@ function iconDragStop(e){
     //在画布范围内
     if(e.data.left>=300 && e.data.top<canvasBottom){
         switch(e.data.target.id){
-            case "bpmn-event-start":
+            case BPMN_EVENT_START:
                 item=appendCircle(bpmnSvg,e.data.left-300,e.data.top,svgCircleR,svgStroke,svgStorkeWidth,svgFill)
-                    .attr("type","bpmn-event-start")
+                    .attr("type",BPMN_EVENT_START)
                     .call(dragEvent.subject(
                         function() {
                             var t = d3.select(this);
@@ -105,9 +115,9 @@ function iconDragStop(e){
                             };
                         }));
                 break;
-            case "bpmn-event-end":
+            case BPMN_EVENT_END:
                 item=appendCircle(bpmnSvg,e.data.left-300,e.data.top,svgCircleR,svgStroke,svgStorkeWidth,svgFill)
-                    .attr("type","bpmn-event-end")
+                    .attr("type",BPMN_EVENT_END)
                     .call(dragEvent.subject(
                         function() {
                             var t = d3.select(this);
@@ -117,9 +127,9 @@ function iconDragStop(e){
                             };
                         }));
                 break;
-            case "bpmn-task-user":
+            case BPMN_TASK_USER:
                 item=appendRect(bpmnSvg,e.data.left-300,e.data.top,svgRectWidth,svgRectHeight,svgStroke,svgStorkeWidth,svgFill)
-                    .attr("type","bpmn-task-user")
+                    .attr("type",BPMN_TASK_USER)
                     .call(dragEvent.subject(
                         function() {
                             var t = d3.select(this);
@@ -129,9 +139,9 @@ function iconDragStop(e){
                             };
                         }));
                 break;
-            case "bpmn-gateway-exclusive":
+            case BPMN_GATEWAY_EXCLUSIVE:
                 item=appendPolygon(bpmnSvg,getGatewayPoints(e.data.left-300,e.data.top),svgStroke,svgStorkeWidth,svgFill)
-                    .attr("type","bpmn-gateway-exclusive")
+                    .attr("type",BPMN_GATEWAY_EXCLUSIVE)
                     .call(dragEvent.subject(
                         function() {
                             var t = d3.select(this);
@@ -220,13 +230,13 @@ function drowFlow(itemStart,itemEnd,uuid){
         case "I":
             if(x1m===x2m){//x轴上中心点同一轨迹
                 flow=appendPath(bpmnSvg,getIPointPath({x:x12,y:y1m},{x:x21,y:y2m}),svgStroke,svgStorkeWidth)
-                    .attr("type","bpmn-sequence-flow")
+                    .attr("type",BPMN_SEQUENCE_FLOW)
                     .attr("source-ref",itemStart.getAttribute("uuid"))
                     .attr("target-ref",itemEnd.getAttribute("uuid"));
             }
             else {//y轴上中心点同一轨迹
                 flow=appendPath(bpmnSvg,getIPointPath({x:x1m,y:y12},{x:x2m,y:y21}),svgStroke,svgStorkeWidth)
-                    .attr("type","bpmn-sequence-flow")
+                    .attr("type",BPMN_SEQUENCE_FLOW)
                     .attr("source-ref",itemStart.getAttribute("uuid"))
                     .attr("target-ref",itemEnd.getAttribute("uuid"));
             }
@@ -234,12 +244,12 @@ function drowFlow(itemStart,itemEnd,uuid){
         case "Z":
             if(x11 >= x22){//结点2在结点1左边(x轴无交集)
                 flow=appendPath(bpmnSvg,getZPointPath({x:x11,y:y1m},{x:x22,y:y2m}),svgStroke,svgStorkeWidth)
-                    .attr("type","bpmn-sequence-flow")
+                    .attr("type",BPMN_SEQUENCE_FLOW)
                     .attr("source-ref",itemStart.getAttribute("uuid"))
                     .attr("target-ref",itemEnd.getAttribute("uuid"));
             }else {//结点2在结点1右边(x轴无交集)
                 flow=appendPath(bpmnSvg,getZPointPath({x:x12,y:y1m},{x:x21,y:y2m}),svgStroke,svgStorkeWidth)
-                    .attr("type","bpmn-sequence-flow")
+                    .attr("type",BPMN_SEQUENCE_FLOW)
                     .attr("source-ref",itemStart.getAttribute("uuid"))
                     .attr("target-ref",itemEnd.getAttribute("uuid"));
             }
@@ -247,12 +257,12 @@ function drowFlow(itemStart,itemEnd,uuid){
         case "N":
             if(y11 > y22){//结点2在结点1上方（y轴无交集）
                 flow=appendPath(bpmnSvg,getNPointPath({x:x1m,y:y11},{x:x2m,y:y22}),svgStroke,svgStorkeWidth)
-                    .attr("type","bpmn-sequence-flow")
+                    .attr("type",BPMN_SEQUENCE_FLOW)
                     .attr("source-ref",itemStart.getAttribute("uuid"))
                     .attr("target-ref",itemEnd.getAttribute("uuid"));
             }else {//结点2在结点1下方（y轴无交集）
                 flow=appendPath(bpmnSvg,getNPointPath({x:x1m,y:y12},{x:x2m,y:y21}),svgStroke,svgStorkeWidth)
-                    .attr("type","bpmn-sequence-flow")
+                    .attr("type",BPMN_SEQUENCE_FLOW)
                     .attr("source-ref",itemStart.getAttribute("uuid"))
                     .attr("target-ref",itemEnd.getAttribute("uuid"));
             }
@@ -261,26 +271,26 @@ function drowFlow(itemStart,itemEnd,uuid){
             if(x11 >= x22){
                 if (y11 > y22) { //结点2在结点1左上方（y轴无交集）
                     flow=appendPath(bpmnSvg,getLPointPath({x:x1m,y:y11},{x:x22,y:y2m}),svgStroke,svgStorkeWidth)
-                        .attr("type","bpmn-sequence-flow")
+                        .attr("type",BPMN_SEQUENCE_FLOW)
                         .attr("source-ref",itemStart.getAttribute("uuid"))
                         .attr("target-ref",itemEnd.getAttribute("uuid"));
                 }
                 else if (y12 < y21) {//结点2在结点1左下方（y轴无交集）
                     flow=appendPath(bpmnSvg,getLPointPath({x:x1m,y:y12},{x:x22,y:y2m}),svgStroke,svgStorkeWidth)
-                        .attr("type","bpmn-sequence-flow")
+                        .attr("type",BPMN_SEQUENCE_FLOW)
                         .attr("source-ref",itemStart.getAttribute("uuid"))
                         .attr("target-ref",itemEnd.getAttribute("uuid"));
                 }
             }else {
                 if (y11 > y22) { //结点2在结点1右上方（y轴无交集）
                     flow=appendPath(bpmnSvg,getLPointPath({x:x1m,y:y11},{x:x21,y:y2m}),svgStroke,svgStorkeWidth)
-                        .attr("type","bpmn-sequence-flow")
+                        .attr("type",BPMN_SEQUENCE_FLOW)
                         .attr("source-ref",itemStart.getAttribute("uuid"))
                         .attr("target-ref",itemEnd.getAttribute("uuid"));
                 }
                 else if (y12 < y21) {//结点2在结点1右下方（y轴无交集）
                     flow=appendPath(bpmnSvg,getLPointPath({x:x1m,y:y12},{x:x21,y:y2m}),svgStroke,svgStorkeWidth)
-                        .attr("type","bpmn-sequence-flow")
+                        .attr("type",BPMN_SEQUENCE_FLOW)
                         .attr("source-ref",itemStart.getAttribute("uuid"))
                         .attr("target-ref",itemEnd.getAttribute("uuid"));
                 }
