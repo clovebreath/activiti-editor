@@ -27,7 +27,7 @@ html,body{
     border-bottom:1px solid lightskyblue;
 }
 .bpmn-properties-table tr{
-    height:16px;
+    height:20px;
 }
 .bpmn-properties-table td,.bpmn-properties-table th{
     text-align: center;

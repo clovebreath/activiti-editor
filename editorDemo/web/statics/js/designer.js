@@ -19,7 +19,10 @@ var targetSvgItem=null;
 
 //初始化
 function initDesigner(){
-    bpmnSvg=d3.select("#bpmn-svg").attr("uuid",Math.uuid()).attr("onclick","onSvgAreaClick()");
+    bpmnSvg=d3.select("#bpmn-svg").attr("uuid",Math.uuid());
+    $("#bpmn-svg").click(function (event) {
+        onSvgAreaClick(event);
+    });
     var defs = bpmnSvg.append("defs");
     //定义箭头
     var arrowMarker = defs.append("marker")
@@ -45,7 +48,10 @@ function initDesigner(){
     });
 }
 
-//连线按钮拖拽停止事件
+/**
+ * 连线停止事件
+ * @param e
+ */
 function arrowDragStop(e){
     var postionX = e.pageX-$('#bpmn-svg').offset().left;
     var positonY = e.pageY-$('#bpmn-svg').offset().top;
@@ -54,7 +60,7 @@ function arrowDragStop(e){
         var targetItem=getElementByPosition(postionX,positonY);
         if(targetItem!==null){
             var flow=drowFlow(selectSvgItem,targetItem);
-            $(flow.node()).trigger("onclick");
+            $(flow.node()).click();
         }
     }
 }
@@ -74,7 +80,9 @@ function getElementByPosition(svgX,svgY) {
     return tempItem;
 }
 
-//删除元素
+/**
+ * 删除元素
+ */
 function deleteItem() {
     var tempUuid=selectSvgItem.getAttribute("uuid");
     //删除对应表格
@@ -83,6 +91,7 @@ function deleteItem() {
     d3.selectAll("path").each(
         function (d,i) {
             if(this.getAttribute("source-ref")===tempUuid||this.getAttribute("target-ref")===tempUuid){
+                deleteTableByUuid(this.getAttribute("uuid"));
                 d3.select(this).remove();
             }
         }
@@ -90,6 +99,7 @@ function deleteItem() {
     //删除元素本身
     selectSvgItem.remove();
     $("#bpmn-menu-area").hide();
+    $("#bpmn-svg").click();
 }
 
 //从菜单栏拖拽停止的事件
@@ -156,7 +166,7 @@ function iconDragStop(e){
         }
     }
     if(item){
-        $(item.node()).trigger("onclick");
+        $(item.node()).click();
     }
     return item;
 }
@@ -313,8 +323,10 @@ function appendCircle(svgContainer,cx,cy,r,stroke,strokeWidth,fill){
         .attr("stroke",stroke)
         .attr("stroke-width",strokeWidth)
         .attr("fill",fill)
-        .attr("onclick","clickSvgElement(this,event)")
         .attr("uuid",Math.uuid());
+    $(svgCir.node()).click(function (event) {
+        clickSvgElement(event);
+    });
     return svgCir;
 }
 
@@ -325,8 +337,10 @@ function appendPath(svgContainer,d,stroke,strokeWidth) {
         .attr("fill","transparent")
         .attr("stroke-width",strokeWidth)
         .attr("marker-end","url(#arrow)")
-        .attr("onclick","clickSvgElement(this,event)")
         .attr("uuid",Math.uuid());
+    $(svgPath.node()).click(function (event) {
+        clickSvgElement(event);
+    });
     return svgPath;
 }
 
@@ -340,6 +354,9 @@ function appendLine(svgContainer,x1,y1,x2,y2,stroke,strokeWidth){
         .attr("stroke-width",strokeWidth)
         .attr("marker-end","url(#arrow)")
         .attr("uuid",Math.uuid());
+    $(svgLine.node()).click(function (event) {
+        clickSvgElement(event);
+    });
     return svgLine;
 }
 
@@ -352,8 +369,10 @@ function appendRect(svgContainer,x,y,width,height,stroke,strokeWidth,fill){
         .attr("stroke",stroke)
         .attr("stroke-width",strokeWidth)
         .attr("fill",fill)
-        .attr("onclick","clickSvgElement(this,event)")
         .attr("uuid",Math.uuid());
+    $(svgRect.node()).click(function (event) {
+        clickSvgElement(event);
+    });
     return svgRect;
 }
 
@@ -363,8 +382,10 @@ function appendPolygon(svgContainer,points,stroke,strokeWidth,fill){
         .attr("stroke",stroke)
         .attr("stroke-width",strokeWidth)
         .attr("fill",fill)
-        .attr("onclick","clickSvgElement(this,event)")
         .attr("uuid",Math.uuid());
+    $(svgPolygon.node()).click(function (event) {
+        clickSvgElement(event);
+    });
     return svgPolygon;
 }
 
@@ -453,7 +474,9 @@ function onSvgItemDragStart(){
     $("#bpmn-menu-area").hide();
 }
 
-//SVG元素移动的事件
+/**
+ *svg元素移动事件
+ */
 function onSvgItemDrag() {
     switch (this.tagName){
         case "circle":
@@ -469,19 +492,17 @@ function onSvgItemDrag() {
     reDrowPath(this);
 }
 
-//svg元素移动完的事件
+/**
+ * svg元素移动完的事件
+ */
 function onSvgItemDragEnd() {
-    switch (this.tagName){
-        case "circle":
-        case "rect":
-        case "polygon":
-        default:
-            break;
-    }
-    clickSvgElement(this);
+    $(this).click();
 }
 
-//点击时显示小菜单
+/**
+ * 点击时显示小菜单
+ * @param element
+ */
 function showMiniMenu(element){
     //设置被选中的item
     selectSvgItem=element;
@@ -499,32 +520,41 @@ function showMiniMenu(element){
     }
 }
 
-//点击时显示对应表格
+/**
+ * 点击时显示对应tab
+ * @param element 被点击的元素
+ */
 function showPropertiesTable(element) {
     var itemUuid=element.getAttribute("uuid");
-    for(var uuid of tableUuids){
-        if(uuid===itemUuid){
-            showUuidTable(uuid);
-            return;
-        }
+    if(!isInArray(tableUuids,itemUuid)){
+        //如果没有对应表格
+        appendTableForItem(itemUuid);
     }
-    //如果没有对应表格
-    appendNewTable(itemUuid);
+    //展示tab
+    showTabs(itemUuid);
 }
 
-//点击svg的空白区域事件
-function onSvgAreaClick() {
+/**
+ * 点击svg的空白区域事件
+ * @param e
+ */
+function onSvgAreaClick(e) {
+    e.stopPropagation();
+    showPropertiesTable(e.target);
     showUuidTable(processUuid);//显示主表格
     $("#bpmn-menu-area").hide();//隐藏浮动菜单
 }
 
-//元素点击事件
-function clickSvgElement(element,e) {
+/**
+ * 元素点击事件
+ * @param e
+ */
+function clickSvgElement(e) {
     if(e){//阻止点击事件向上冒泡
         e.stopPropagation();
     }
-    showMiniMenu(element);
-    showPropertiesTable(element);
+    showMiniMenu(e.target);
+    showPropertiesTable(e.target);
 }
 
 //TODO 数据的绑定方式，planA:利用d3.js把数据统一绑定到svg元素上 planB:直接在页面上以表格的形式存在

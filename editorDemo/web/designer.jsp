@@ -54,14 +54,11 @@
                         </ul>
                     </div>
                 </div>
-                <div id="bpmn-properties" height="auto" region="center"
-                     data-options="collapsible:false,title:'Properties',tools:[{iconCls:'icon-save',handler:getTableFile}]">
-                </div>
             </div>
         </div>
         <div data-options="region:'center'">
             <div id="inner-pannel" class="easyui-layout" fit="true">
-                <div id="bpmn-canvas" class="easyui-droppable" data-options=
+                <div id="bpmn-canvas" class="easyui-droppable" style="height:auto" data-options=
                         "region:'center',title:'Canvas',accept:'.bpmn-list',tools:[{iconCls:'icon-save',handler:getSvgFile}]">
                     <div style="position:relative;width: 100%;height: 100%">
                         <div id="svg-container" style="width: 100%;height: 100%">
@@ -80,7 +77,22 @@
                 </div>
             </div>
         </div>
+        <div style="height: 250px" data-options="region:'south',collapsible:false,title:'Properties'">
+            <div id="bpmn-properties" class="easyui-tabs" fit="true" tabPosition="left">
+                <div id="properties-process" title="Process" style="padding:10px"></div>
+                <div id="properties-data-object" title="Data Objects" style="padding:10px"></div>
+                <div id="properties-general" title="General" style="padding:10px"></div>
+                <div id="properties-main-config" title="Main Config" style="padding:10px"></div>
+                <div id="properties-documentation" title="Documentation" style="padding:10px"></div>
+                <div id="properties-form" title="Form" style="padding:10px"></div>
+                <div id="properties-multi-instance" title="Multi instance" style="padding:10px"></div>
+                <div id="properties-listeners" title="Listeners" style="padding:10px"></div>
+                <div id="properties-signals" title="Signals" style="padding:10px"></div>
+                <div id="properties-messages" title="Messages" style="padding:10px"></div>
+            </div>
+        </div>
     </div>
+</div>
 </body>
 </html>
 
