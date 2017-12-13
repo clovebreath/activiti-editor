@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>designer DEMO</title>
+        <!-- 下面是easyui的环境 -->
+        <link rel="stylesheet" href="statics/js/jquery-easyui-1.5.3/themes/icon.css" type="text/css" />
+        <link rel="stylesheet" href="statics/js/jquery-easyui-1.5.3/themes/default/easyui.css" type="text/css" />
+        <script type="text/javascript" src="statics/js/jquery-easyui-1.5.3/jquery.min.js"></script>
+        <script type="text/javascript" src="statics/js/jquery-easyui-1.5.3/jquery.easyui.min.js"></script>
+        <script type="text/javascript" src="statics/js/jquery-easyui-1.5.3/locale/easyui-lang-zh_CN.js"></script>
+        <!-- 引入d3.js 用于绑定数据以及进行svg相关操作 -->
+        <script type="text/javascript" src="statics/js/d3.min.js"></script>
+        <!-- 引入自己的css -->
+        <script type="text/javascript" src="statics/js/uuid.js"></script>
+        <script type="text/javascript" src="statics/js/activitiDesign.js"></script>
+        <link rel="stylesheet" href="statics/css/default.css" type="text/css" />
+        <style>
+            .bpmn-icon{height: 14px;}
+            .itemlist{width: 60px;padding: 5px}
+        </style>
+    </head>
+    <body>
+
+        <div id="bpmn-event-area" class="easyui-window" style="width:auto;height:auto;overflow:hidden;" title="元素"
+             data-options="collapsible:true,minimizable:false,closable:false,modal:false,resizable:false">
+
+            <div style="height: auto;" >
+                <ul class="itemlist">
+                    <li id="bpmn-event-start" class="easyui-draggable bpmn-list" >
+                        <img class="bpmn-icon" src="statics/images/free.png">开始
+                    </li>
+                    <li id="bpmn-event-end" class="easyui-draggable bpmn-list">
+                        <img class="bpmn-icon" src="statics/images/free.png">结束
+                    </li>
+                    <li id="bpmn-task-user" class="easyui-draggable bpmn-list">
+                        <img class="bpmn-icon" src="statics/images/free.png">任务
+                    </li>
+                    <li id="bpmn-gateway-exclusive" class="easyui-draggable bpmn-list">
+                        <img class="bpmn-icon" src="statics/images/free.png">判断
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="bpmn-property-area" class="easyui-window" style="width:400px;height: auto;overflow:hidden;" title="属性列表"
+             data-options="collapsible:true,minimizable:false,closable:false,modal:false,resizable:false">
+            <div data-options="title:'property',collapsible:false" height="auto">
+                <div id="bpmn-property-main" class="easyui-propertygrid" data-options="showGroup:true,showHeader:true,scrollbarSize:0,
+                            columns: [[ { field: 'name', title: '基础属性',width:150, resizable: true }, { field: 'value', title: '值',width:250,resizable: false }]]"
+                     height="auto">
+                </div>
+                <div id="bpmn-form-area">
+                    <div class="easyui-panel" data-options="title:'自定义属性',scrollbarSize:0,tools:'#bpmn-form-tool'" height="auto">
+                        <div id="bpmn-property-form" class="easyui-propertygrid" data-options="showGroup:true,showHeader:false,scrollbarSize:0,
+                        columns: [[ { field: 'name',width:150, resizable: true }, { field: 'value',width:250,resizable: false }]]" height="auto">
+                        </div>
+                    </div>
+                    <div id="bpmn-form-tool">
+                        <a href="javascript:void(0)" class="icon-add" onclick="javascript:newFormProperty()"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="bpmn-canvas" class="easyui-droppable easyui-panel" data-options="title:'designer', accept:'.bpmn-list',fit:true,scrollbarSize:0,
+        tools:[{iconCls:'icon-save',handler:getSvgFile}]" style="overflow: hidden">
+            <div style="position:relative;width: 100%;height: 100%">
+                <div id="svg-container" style="width: 100%;height: 100%">
+                    <svg id="bpmn-svg" type="bpmn-process" style="width: 100%;height: 100%;" xmlns="http://www.w3.org/2000/svg" version="1.1">
+                    </svg>
+                </div>
+                <div id="bpmn-menu-area">
+                    <div id="bpmn-menu-arrow" class="bpmn-menu easyui-draggable">
+                        <img src="statics/images/icons/connector/sequenceflow.png">
+                    </div>
+                    <div id="bpmn-menu-delete" class="bpmn-menu" onclick="deleteItem()">
+                        <img src="statics/images/icons/delete.png">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //设置页面两个浮动窗口的位置
+        $("body>div").eq(1).css("top","50px").css("left","50px");
+        $("body>div").eq(2).css("top","50px").css("left","50px");
+        $("body>div").eq(3).css("top","50px").css("left",$("body").width()-$("body>div").eq(3).width()-50);
+        $("body>div").eq(4).css("top","50px").css("left",$("body").width()-$("body>div").eq(3).width()-50);
+        initDesigner();
+    });
+</script>
