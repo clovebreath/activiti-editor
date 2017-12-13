@@ -13,8 +13,14 @@ svg{
     list-style:none;
 }
 .bpmn-icon{
+    height: 14px;
     vertical-align: middle;
     margin-right: 3px;
+}
+.bpmn-item-list{
+    width: 60px;
+    padding: 5px;
+    margin: 5px;
 }
 #bpmn-menu-area{
     position: absolute;

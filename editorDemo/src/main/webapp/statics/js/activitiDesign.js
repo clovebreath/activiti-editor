@@ -156,6 +156,7 @@ const sequenceFlowConfig=[
 
 const svgStroke = "#808080";
 const svgStorkeWidth = 2;
+//由于使用的图片，width和height只会有一个生效，另一个则按照比例缩放。实际代码中优先使用height：见function appendItem。
 const svgWidth = 45;
 const svgHeight = 45;
 //图片路径，iconDragStop(e)方法中使用该路径绘图
@@ -246,7 +247,7 @@ function arrowDragStop(e) {
  */
 function getElementByPosition(svgX, svgY) {
     let tempItem = null;
-    d3.selectAll("image").each(
+    d3.selectAll("svg>image").each(
         function () {
             let box = this.getBBox();
             if (box.x < svgX && svgX < (box.x + box.width) && box.y < svgY && svgY < (box.y + box.height)) {
@@ -288,9 +289,10 @@ function deleteItem() {
  * @param e
  * @returns {*}
  */
-function iconDragStop(e) {
-    //顶部栏的高度
-    let canvasTop = $("body").height() - $("[type='bpmn-process']").eq(0).height();
+function iconDragStop(e) {debugger
+    //计算绘图区和body坐标差，方便进行转换。
+    let canvasTop = $("[type='bpmn-process']").offset().top - $("body").offset().top ;
+    let canvasLeft = $("[type='bpmn-process']").offset().left - $("body").offset().left ;
     //定义d3拖拽对象，后续添加到对象上，使其可移动
     let dragEvent = d3.drag()
         .on("start", onSvgItemDragStart)
@@ -308,22 +310,22 @@ function iconDragStop(e) {
     if (e.data.top > canvasTop && checkDragPosition(e.data.left,e.data.top)) {
         switch (e.data.target.id) {
             case BPMN_EVENT_START:
-                item = appendItem(bpmnSvg, e.data.left, e.data.top-canvasTop,startEventImage,svgWidth,svgHeight)
+                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop,startEventImage,svgWidth,svgHeight)
                     .attr("type", BPMN_EVENT_START)
                     .call(dragEvent);
                 break;
             case BPMN_EVENT_END:
-                item = appendItem(bpmnSvg, e.data.left, e.data.top-canvasTop, endEventImage,svgWidth,svgHeight)
+                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop, endEventImage,svgWidth,svgHeight)
                     .attr("type", BPMN_EVENT_END)
                     .call(dragEvent);
                 break;
             case BPMN_TASK_USER:
-                item = appendItem(bpmnSvg, e.data.left, e.data.top-canvasTop,userTaskImage,svgWidth,svgHeight)
+                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop,userTaskImage,svgWidth,svgHeight)
                     .attr("type", BPMN_TASK_USER)
                     .call(dragEvent);
                 break;
             case BPMN_GATEWAY_EXCLUSIVE:
-                item = appendItem(bpmnSvg, e.data.left, e.data.top-canvasTop, exclusiceGatewayImage,svgWidth,svgHeight)
+                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop, exclusiceGatewayImage,svgWidth,svgHeight)
                     .attr("type", BPMN_GATEWAY_EXCLUSIVE)
                     .call(dragEvent);
                 break;
@@ -509,7 +511,7 @@ function drowFlow(itemStart, itemEnd, uuid, id) {
  * @param imageUrl
  */
 function appendItem(svgContainer,x,y,imageUrl,width,height){
-    let item=svgContainer.append("image").attr("href",imageUrl).attr("x",x).attr("y",y).attr("uuid", Math.uuid());
+    let item=svgContainer.append("image").attr("href",imageUrl).attr("x",parseInt(x)).attr("y",parseInt(y)).attr("uuid", Math.uuid());
     if(height){//只设定高，宽会根据图片比例生成
         item.attr("height",height);
     }else if(width){//只设定宽，高会根据图片比例生成
@@ -532,10 +534,10 @@ function appendItem(svgContainer,x,y,imageUrl,width,height){
  */
 function appendLine(svgContainer, x1, y1, x2, y2,imageUrl) {
     let svgLine = svgContainer.append("line")
-        .attr("x1", x1)
-        .attr("y1", y1)
-        .attr("x2", x2)
-        .attr("y2", y2)
+        .attr("x1", parseInt(x1))
+        .attr("y1", parseInt(y1))
+        .attr("x2", parseInt(x2))
+        .attr("y2", parseInt(y2))
         .attr("stroke", svgStroke)
         .attr("stroke-width", svgStorkeWidth)
         .attr("marker-end", "url(#arrow)")
@@ -556,13 +558,19 @@ function reDrowPath(item) {
             if (this.getAttribute("source-ref") === item.getAttribute("uuid")) {
                 let condition = "[type][uuid=" + this.getAttribute('target-ref') + "]";
                 let otherItem = $(condition)[0];
-                drowFlow(item, otherItem, this.getAttribute("uuid"),this.getAttribute("id")).datum(d);
+                let flow=drowFlow(item, otherItem, this.getAttribute("uuid"),this.getAttribute("id"));
+                if(flow){
+                    flow.datum(d);
+                }
                 d3.select(this).remove();
             }
             if (this.getAttribute("target-ref") === item.getAttribute("uuid")) {
                 let condition = "[type][uuid=" + this.getAttribute('source-ref') + "]";
                 let otherItem = $(condition)[0];
-                drowFlow(otherItem, item, this.getAttribute("uuid"),this.getAttribute("id")).datum(d);
+                let flow=drowFlow(otherItem, item, this.getAttribute("uuid"),this.getAttribute("id"))
+                if(flow){
+                    flow.datum(d);
+                }
                 d3.select(this).remove();
             }
         }
@@ -580,8 +588,75 @@ function onSvgItemDragStart() {
  *svg元素移动事件
  */
 function onSvgItemDrag() {
-    d3.select(this).attr("x", d3.event.x).attr("y", d3.event.y);
-    reDrowPath(this);
+    let eventX = parseInt(d3.event.x);
+    let eventY = parseInt(d3.event.y);
+    //根据当前状态修改位置
+    if(getDragStatus(eventX,eventY,this).canDrag){
+        d3.select(this).attr("x",eventX).attr("y", eventY);
+        reDrowPath(this);
+    }
+    //若不能完全实现鼠标目标方向，则尝试x轴或y轴的平移
+    else if(getDragStatus(eventX,this.getBBox().y,this).canDrag){
+        d3.select(this).attr("x",eventX);
+        reDrowPath(this);
+    }
+    else if(getDragStatus(this.getBBox().x,eventY,this).canDrag){
+        d3.select(this).attr("y",eventY);
+        reDrowPath(this);
+    }
+}
+
+/**
+ * 根据传入坐标判断能否拖拽
+ * @param eventX
+ * @param eventY
+ * @param element
+ * @returns {{canDrag: boolean, limitX: null, limitY: null}}
+ */
+function getDragStatus(eventX,eventY,element){
+    //暂时只有一个属性：能否移动。
+    let status={
+        "canDrag":true
+    };
+    let eleBox=element.getBBox();
+    //与其他item的最小距离为6px,(下面计算结果可能出现为3px的情况);
+    let x0=eventX-6,x1=x0+eleBox.width+12;
+    let y0=eventY-6,y1=y0+eleBox.height+12;
+    for(let x=x0;x<=x1;x=x+3){
+        let tmpItem=getElementByPosition(x, y0);
+        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+            status.canDrag=false;
+            break;
+        }
+        tmpItem=getElementByPosition(x, y1);
+        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+            status.canDrag=false;
+            break;
+        }
+    }
+    for(let y=y0;y<=y1;y=y+3){
+        let tmpItem=getElementByPosition(x0, y);
+        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+            status.canDrag=false;
+            break;
+        }
+        tmpItem=getElementByPosition(x1, y);
+        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+            status.canDrag=false;
+            break;
+        }
+    }
+
+    d3.selectAll("svg>image").each(
+        function () {
+            let box = this.getBBox();
+            if ( x0<=box.x && ((box.x+box.width)<=x1) && y0<=box.y && ((box.y+box.height)<=y1 && this.getAttribute("uuid")!==element.getAttribute("uuid")) ) {
+                status.canDrag=false;
+            }
+        }
+    );
+
+    return status;
 }
 
 /**
