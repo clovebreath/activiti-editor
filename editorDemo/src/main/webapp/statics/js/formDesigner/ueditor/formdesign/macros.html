@@ -51,7 +51,7 @@ function createElement(type, name)
                         <option value="sys_time">当前时间 [ 12:30 ]</option>
                     </optgroup>
                     <optgroup label="----扩展定义----">
-                        <option value="sys_user_id">当前用户编号，如 1</option>
+                        <option value="sys_user_id">当前用户编号，如 77</option>
                         <option value="sys_real_name">当前用户姓名，如 吉安路易吉·布冯</option>
                         <option value="sys_dept">当前用户部门，如 尤文图斯</option>
                     </optgroup>
@@ -151,40 +151,64 @@ dialog.onok = function (){
                 return false;
             }
     } else {
-        var norgname = oNode.getAttribute('name').replace(/\"/g,"&quot;");
-        var oNewNode = null;
-        domUtils.remove(oNode,false);  //删除当前控件，再创建一个新的
+//        var norgname = oNode.getAttribute('name').replace(/\"/g,"&quot;");
+//        var oNewNode = null;
+//        domUtils.remove(oNode,false);  //删除当前控件，再创建一个新的
         /*
         if ( $G('orgtype').value.indexOf('sys_list') > 0 ) {
             oNewNode = document.createElement("select");
             var objOption = new Option('{macros}', '');
             oNewNode.options[oNewNode.options.length] = objOption;
         }*/
-        oNewNode = createElement('input','leipiNewField');
-        oNewNode.setAttribute('type','text');
-        oNewNode.setAttribute('value','{macros}');
-        oNewNode.setAttribute('title',gTitle);
-        oNewNode.setAttribute('name',norgname);
-        oNewNode.setAttribute('leipiPlugins',thePlugins ); 
-        oNewNode.setAttribute('orgtype',gType); 
+//        oNewNode = createElement('input','leipiNewField');
+//        oNewNode.setAttribute('type','text');
+//        oNewNode.setAttribute('value','{macros}');
+//        oNewNode.setAttribute('title',gTitle);
+//        oNewNode.setAttribute('name',norgname);
+//        oNewNode.setAttribute('leipiPlugins',thePlugins );
+//        oNewNode.setAttribute('orgtype',gType);
+//        if( $G('orghide').checked ) {
+//            oNewNode.setAttribute('orghide', '1' ) ;
+//        } else {
+//            oNewNode.setAttribute('orghide', '0' ) ;
+//        }
+//        if( gFontSize != '' ) {
+//            oNewNode.style.fontSize = gFontSize + 'px';
+//            oNewNode.setAttribute('orgfontsize',gFontSize );
+//        }else{
+//            oNewNode.setAttribute('orgfontsize', '');
+//        }
+//        if( gWidth != '' ) {
+//            oNewNode.style.width = gWidth + 'px';
+//            oNewNode.setAttribute('orgwidth',gWidth );
+//        }else{
+//            oNewNode.setAttribute('orgwidth', '');
+//        }
+//        editor.execCommand('insertHtml',oNewNode.outerHTML);
+//        delete UE.plugins[thePlugins].editdom;
+
+        oNode.setAttribute('type','text');
+        oNode.setAttribute('value','{macros}');
+        oNode.setAttribute('title',gTitle);
+        oNode.setAttribute('leipiPlugins',thePlugins );
+        oNode.setAttribute('orgtype',gType);
         if( $G('orghide').checked ) {
-            oNewNode.setAttribute('orghide', '1' ) ;
+            oNode.setAttribute('orghide', '1' ) ;
         } else {
-            oNewNode.setAttribute('orghide', '0' ) ;
+            oNode.setAttribute('orghide', '0' ) ;
         }
         if( gFontSize != '' ) {
-            oNewNode.style.fontSize = gFontSize + 'px';
-            oNewNode.setAttribute('orgfontsize',gFontSize );
+            oNode.style.fontSize = gFontSize + 'px';
+            oNode.setAttribute('orgfontsize',gFontSize );
         }else{
-            oNewNode.setAttribute('orgfontsize', '');
+            oNode.setAttribute('orgfontsize', '');
         }
         if( gWidth != '' ) {
-            oNewNode.style.width = gWidth + 'px';
-            oNewNode.setAttribute('orgwidth',gWidth );
+            oNode.style.width = gWidth + 'px';
+            oNode.setAttribute('orgwidth',gWidth );
         }else{
-            oNewNode.setAttribute('orgwidth', '');
+            oNode.setAttribute('orgwidth', '');
         }
-        editor.execCommand('insertHtml',oNewNode.outerHTML);
         delete UE.plugins[thePlugins].editdom;
     }
 };

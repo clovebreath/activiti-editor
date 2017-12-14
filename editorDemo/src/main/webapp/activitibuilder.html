@@ -98,12 +98,7 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        //todo 修改两个对话框的位置
-        $("body>div").eq(1).css("top",($("[type='bpmn-process']").offset().top+20)+"px").css("left", ($("[type='bpmn-process']").offset().left+20)+`px`);
-        $("body>div").eq(2).css("top",($("[type='bpmn-process']").offset().top+20)+"px").css("left", ($("[type='bpmn-process']").offset().left+20)+`px`);
-        $("body>div").eq(3).css("top",($("[type='bpmn-process']").offset().top+20)+"px").css("left",$("body").width()-$("body>div").eq(3).width()-50);
-        $("body>div").eq(4).css("top",($("[type='bpmn-process']").offset().top+20)+"px").css("left",$("body").width()-$("body>div").eq(3).width()-50);
-        //调用初始化方法
+        //初始化
         initDesigner();
     });
 </script>

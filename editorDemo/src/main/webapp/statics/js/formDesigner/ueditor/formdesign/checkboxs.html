@@ -199,7 +199,7 @@ window.onload = function() {
     if( UE.plugins[thePlugins].editdom ){
         oNode = UE.plugins[thePlugins].editdom;
         var gTitle=oNode.getAttribute('title').replace(/&quot;/g,"\"");
-        $G('orgname').value = gTitle;debugger
+        $G('orgname').value = gTitle;
         var checked = oNode.getAttribute('orgchecked');
         checked=='orgchecked1' ? $G('orgchecked1').checked = true : $G('orgchecked0').checked = true;
 

@@ -218,6 +218,13 @@ function initDesigner() {
     }});
     //Form区域
     $('#bpmn-form-area').hide();
+    //修改两个对话框的位置
+    let dialogWindow=$("body>div");
+    let canvesWindow=$("#bpmn-canvas").offset();
+    dialogWindow.eq(1).css("top",(canvesWindow.top)+"px").css("left", (canvesWindow.left)+`px`);
+    dialogWindow.eq(2).css("top",(canvesWindow.top)+"px").css("left", (canvesWindow.left)+`px`);
+    dialogWindow.eq(3).css("top",(canvesWindow.top)+"px").css("left",canvesWindow.left+$("#bpmn-canvas")[0].clientWidth-dialogWindow[3].clientWidth);
+    dialogWindow.eq(4).css("top",(canvesWindow.top)+"px").css("left",canvesWindow.left+$("#bpmn-canvas")[0].clientWidth-dialogWindow[3].clientWidth);
     //初始化时需要触发svg面板的点击事件
     $("[type='bpmn-process']").click();
 }
@@ -289,7 +296,7 @@ function deleteItem() {
  * @param e
  * @returns {*}
  */
-function iconDragStop(e) {debugger
+function iconDragStop(e) {
     //计算绘图区和body坐标差，方便进行转换。
     let canvasTop = $("[type='bpmn-process']").offset().top - $("body").offset().top ;
     let canvasLeft = $("[type='bpmn-process']").offset().left - $("body").offset().left ;
@@ -454,48 +461,57 @@ function angle(start,end){
  * @returns {*}
  */
 function drowFlow(itemStart, itemEnd, uuid, id) {
-    let flowType = getFlowType(itemStart, itemEnd);
-    let boxStart = itemStart.getBBox();
-    let boxEnd = itemEnd.getBBox();
-    let x11 = boxStart.x, x12 = boxStart.x + boxStart.width, x21 = boxEnd.x, x22 = boxEnd.x + boxEnd.width;
-    let y11 = boxStart.y, y12 = boxStart.y + boxStart.height, y21 = boxEnd.y, y22 = boxEnd.y + boxEnd.height;
-    let x1m = (x11 + x12) / 2, x2m = (x21 + x22) / 2, y1m = (y11 + y12) / 2, y2m = (y21 + y22) / 2;
+    let startUuid=itemStart.getAttribute("uuid");
+    let endUuid=itemEnd.getAttribute("uuid");
     let flow;
-    switch (flowType) {
-        case "N":
-            flow = appendLine(bpmnSvg,x1m,y11,x2m,y22);
-            break;
-        case "S":
-            flow = appendLine(bpmnSvg,x1m,y12,x2m,y21);
-            break;
-        case "E":
-            flow = appendLine(bpmnSvg,x12,y1m,x21,y2m);
-            break;
-        case "W":
-            flow = appendLine(bpmnSvg,x11,y1m,x22,y2m);
-            break;
-        case "EN":
-            flow = appendLine(bpmnSvg,x12,y11,x21,y22);
-            break;
-        case "ES":
-            flow = appendLine(bpmnSvg,x12,y12,x21,y21);
-            break;
-        case "WN":
-            flow = appendLine(bpmnSvg,x11,y11,x22,y22);
-            break;
-        case "WS":
-            flow = appendLine(bpmnSvg,x11,y12,x22,y21);
-            break;
-        default:
-            break;
-    }
-    if(flow){
-        flow.attr("target-ref",itemEnd.getAttribute("uuid")).attr("source-ref",itemStart.getAttribute("uuid")).attr("type",BPMN_SEQUENCE_FLOW);
-        flow.node().__data__=[];
-        //对于重绘的flow，将uuid改为原有的uuid
-        if (uuid && id ) {
-            flow.attr("uuid", uuid);
-            flow.attr("id", id);
+    //如果已存在连线，则直接返回
+    if($(`[target-ref="${endUuid}"][source-ref="${startUuid}"]`).attr("type")===BPMN_SEQUENCE_FLOW){
+        flow = d3.select(`[target-ref="${endUuid}"][source-ref="${startUuid}"]`);
+    }else{
+        let flowType = getFlowType(itemStart, itemEnd);
+        let boxStart = itemStart.getBBox();
+        let boxEnd = itemEnd.getBBox();
+        let x11 = boxStart.x, x12 = boxStart.x + boxStart.width, x21 = boxEnd.x, x22 = boxEnd.x + boxEnd.width;
+        let y11 = boxStart.y, y12 = boxStart.y + boxStart.height, y21 = boxEnd.y, y22 = boxEnd.y + boxEnd.height;
+        let x1m = (x11 + x12) / 2, x2m = (x21 + x22) / 2, y1m = (y11 + y12) / 2, y2m = (y21 + y22) / 2;
+        switch (flowType) {
+            case "N":
+                flow = appendLine(bpmnSvg,x1m,y11,x2m,y22);
+                break;
+            case "S":
+                flow = appendLine(bpmnSvg,x1m,y12,x2m,y21);
+                break;
+            case "E":
+                flow = appendLine(bpmnSvg,x12,y1m,x21,y2m);
+                break;
+            case "W":
+                flow = appendLine(bpmnSvg,x11,y1m,x22,y2m);
+                break;
+            case "EN":
+                flow = appendLine(bpmnSvg,x12,y11,x21,y22);
+                break;
+            case "ES":
+                flow = appendLine(bpmnSvg,x12,y12,x21,y21);
+                break;
+            case "WN":
+                flow = appendLine(bpmnSvg,x11,y11,x22,y22);
+                break;
+            case "WS":
+                flow = appendLine(bpmnSvg,x11,y12,x22,y21);
+                break;
+            default:
+                break;
+        }
+        if(flow){
+            flow.attr("target-ref",endUuid).attr("source-ref",startUuid).attr("type",BPMN_SEQUENCE_FLOW);
+            flow.node().__data__=[];
+            //对于重绘的flow，将uuid改为原有的uuid
+            if (uuid) {
+                flow.attr("uuid", uuid);
+                if ( id ) {
+                    flow.attr("id", id);
+                }
+            }
         }
     }
     return flow;
@@ -558,20 +574,26 @@ function reDrowPath(item) {
             if (this.getAttribute("source-ref") === item.getAttribute("uuid")) {
                 let condition = "[type][uuid=" + this.getAttribute('target-ref') + "]";
                 let otherItem = $(condition)[0];
-                let flow=drowFlow(item, otherItem, this.getAttribute("uuid"),this.getAttribute("id"));
+                let uuid=this.getAttribute("uuid");
+                let id=this.getAttribute("id");
+                //先删除后添加
+                d3.select(this).remove();
+                let flow=drowFlow(item, otherItem, uuid,id);
                 if(flow){
                     flow.datum(d);
                 }
-                d3.select(this).remove();
             }
             if (this.getAttribute("target-ref") === item.getAttribute("uuid")) {
                 let condition = "[type][uuid=" + this.getAttribute('source-ref') + "]";
                 let otherItem = $(condition)[0];
-                let flow=drowFlow(otherItem, item, this.getAttribute("uuid"),this.getAttribute("id"))
+                let uuid=this.getAttribute("uuid");
+                let id=this.getAttribute("id");
+                //先删除后添加
+                d3.select(this).remove();
+                let flow=drowFlow(otherItem, item, uuid,id);
                 if(flow){
                     flow.datum(d);
                 }
-                d3.select(this).remove();
             }
         }
     );
@@ -788,8 +810,8 @@ function getAutoId(uuid){
  * @param element
  */
 function bindPropertiesToItem(element) {
-
     if (!element) {
+        console.log("bind property to element error, element",element);
         return
     }
     //main区域的属性
@@ -830,7 +852,9 @@ function bindPropertiesToItem(element) {
     d3.select("[type][uuid='" + element.getAttribute("uuid") + "']").datum(mainData);
     //将id绑定到dom元素上
     if(mainData[0].name&&mainData[0].name==="id"){
-        element.setAttribute("id",mainData[0].value);
+        element.id=mainData[0].value;
+    }else{
+        console.log("set id to element error, id:",mainData[0].name,mainData[0].value);
     }
 
 }
@@ -886,7 +910,7 @@ function setProperties(element) {
 }
 
 /**
- * 获取svg的xml文件
+ * 获取svg的xml文件 todo 修改为用文件流保存到本地
  */
 function getSvgFile() {
     funDownload(getBpmnOfSvg(), "designer.bpmn");
@@ -959,12 +983,11 @@ function getBpmnOfSvg(){
     }
     let i=0;
     //bpmnDiagram的xml头尾
-    let bpmnDiagramXmlStart="<bpmndi:BPMNDiagram id=\"_id_\">\n".replace("_id_","BPMNDiagram_"+processUuid);
+    let bpmnDiagramXmlStart=`<bpmndi:BPMNDiagram id="${"BPMNDiagram_"+processUuid}">\n`;
     let bpmnDiagramXmlEnd="</bpmndi:BPMNDiagram>\n";
     //bpmnprocess以及bpmnPlane的xml内容
     let bpmnProcessXml=getProcessXml(processUuid);
-    let bpmnPlaneXml="<bpmndi:BPMNPlane bpmnElement=\"_bpmnElement_\" id=\"_id_\">\n".replace("_bpmnElement_",processUuid)
-        .replace("_id_","BPMNPlane_"+processUuid);
+    let bpmnPlaneXml=`<bpmndi:BPMNPlane bpmnElement="${processUuid}" id="${"BPMNPlane_"+processUuid}">\n`;
     while(i<bpmnProcessChilds.length){
         bpmnProcessXml+=bpmnProcessChilds[i];
         bpmnPlaneXml+=bpmnPlaneChilds[i++];
@@ -973,7 +996,6 @@ function getBpmnOfSvg(){
     bpmnPlaneXml+="</bpmndi:BPMNPlane>\n";
     //最终的xml文本内容
     let bpmnContent=bpmnHeader+bpmnProcessXml+bpmnDiagramXmlStart+bpmnPlaneXml+bpmnDiagramXmlEnd+bpmnFooter;
-    console.log(bpmnContent);
     return bpmnContent;
 }
 
@@ -1085,10 +1107,11 @@ function getExclusiveGatewayXml(uuid){
  * @returns {string}
  */
 function getSequenceFlowXml(uuid){
-    let tempXml="<sequenceFlow _id_ _name_ _sourceRef_ _targetRef_>_subItem_\n</sequenceFlow>";
+    let tempXml="<sequenceFlow _id_ _name_ _sourceRef_ _targetRef_>\n_subItem_</sequenceFlow>\n";
     let condition="<conditionExpression xsi:type=\"tFormalExpression\"><![CDATA[_condition_]]></conditionExpression>\n";
     let flow=$("[uuid='"+uuid+"']");
 
+    //设置基本属性sourceref和targetref
     tempXml=tempXml.replace("_sourceRef_", "sourceRef=\""+$("[uuid='"+flow.attr("source-ref")+"']").attr("id")+"\"");
     tempXml=tempXml.replace("_targetRef_", "targetRef=\""+$("[uuid='"+flow.attr("target-ref")+"']").attr("id")+"\"");
 
@@ -1112,7 +1135,7 @@ function getSequenceFlowXml(uuid){
                 break;
         }
     }
-    if(condition.indexOf("_condition_")<0){
+    if(condition.indexOf("<![CDATA[]]>")<0){
         tempXml=tempXml.replace("_subItem_",condition);
     }else{
         tempXml=tempXml.replace("_subItem_","");
@@ -1127,13 +1150,14 @@ function getSequenceFlowXml(uuid){
  * @returns {string}
  */
 function getUserTaskXml(uuid){
-    let tempXml=" <userTask _id_ _name_ _activiti:assignee_ _activiti:formKey_ _activiti:candidateGroups_ _activiti:candidateUsers_>_subItem_";
+    let tempXml=" <userTask _id_ _name_ _activiti:assignee_ _activiti:formKey_ _activiti:candidateGroups_ _activiti:candidateUsers_>\n_subItem_";
     let formProperties=[];
     let formPropertyXml="<activiti:formProperty _id_ _type_ _default_ ></activiti:formProperty>\n";
     let multiInstance="<multiInstanceLoopCharacteristics isSequential=\"false\" _activiti:collection_ " +
         "_activiti:elementletiable_></multiInstanceLoopCharacteristics>\n";
     let datas=d3.select("[uuid='"+uuid+"']").data()[0];
     for(let data of datas){
+        //普通属性直接进行替换
         if (data.group === "General") {
             if (data.value) {
                 tempXml=tempXml.replace("_" + data.name + "_", data.name + "=\"" + data.value + "\"");
@@ -1153,6 +1177,7 @@ function getUserTaskXml(uuid){
                 multiInstance=multiInstance.replace("_activiti:" + data.name + "_", "");
             }
         } else if (data.group.indexOf("property") === 0) {
+            //扩展属性通过数组来存储，每一项对应一个数组元素，后续添加到usertask中时再处理无意义的属性。
             if(!formProperties[data.group]){
                 formProperties[data.group]=new String(formPropertyXml);
             }
@@ -1164,11 +1189,12 @@ function getUserTaskXml(uuid){
         }
     }
     if(multiInstance.indexOf("_activiti:")<0){
-        tempXml=tempXml.replace("_subItem_",multiInstance+"_subItem_");
+        tempXml=tempXml.replace("_subItem_",multiInstance+"\n_subItem_");
     }
     for(let key in formProperties){
-        if(formProperties[key]){
-            tempXml=tempXml.replace("_subItem_",formProperties[key]+"_subItem_");
+        //对于扩展属性（from列表），需判断是否有意义。
+        if(formProperties[key] && formProperties[key].indexOf("=")>0 ){
+            tempXml=tempXml.replace("_subItem_",formProperties[key]+"\n_subItem_");
         }
     }
     return tempXml.replace("_subItem_","")+"\n</userTask>";
@@ -1210,6 +1236,7 @@ function getItemBpmn(item,bpmnProcessChilds,bpmnPlaneChilds) {
             tempItemXml=getSequenceFlowXml(tempUuid);
             break;
         default:
+            console.log("item type error .",item);
             return false;
     }
     //plane部分
@@ -1249,10 +1276,12 @@ function getItemBpmn(item,bpmnProcessChilds,bpmnPlaneChilds) {
         }
     }
     else{
+        console.log("item id error .",item);
         return false;
     }
 
     bpmnProcessChilds.push(tempItemXml);
     bpmnPlaneChilds.push(tempPlaneXml);
+    console.log("get item xml finished .",bpmnProcessChilds.length,bpmnPlaneChilds.length);
     return true;
 }

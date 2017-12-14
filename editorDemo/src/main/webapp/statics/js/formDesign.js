@@ -160,14 +160,14 @@ function getTable(parseFormData) {
                     break;
                 // 下面为扩展定义
                 // 扩展定义可在statics/js/formDesigner/ueditor/formdesign/macros.html页面中自定义。
-                case 'sys_uid':
+                case 'sys_user_id':
                     // 当前用户id（这里应该通过系统代码获取，这里只做示例）
                     val = '1101';
                     // 真实使用中，有两种处理方式（推荐第一种，减少数据访问量）
                     // 第一就是获取表单时提前查询，这里直接设置
                     // 第二是在这里发起ajax请求进行获取
                     break;
-                case 'sys_name':
+                case 'sys_real_name':
                     // 当前用户姓名（这里应该通过系统代码获取，这里只做示例）
                     val = '张三';
                     break;
