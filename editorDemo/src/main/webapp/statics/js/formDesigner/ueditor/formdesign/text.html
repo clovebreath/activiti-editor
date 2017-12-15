@@ -48,13 +48,16 @@ function createElement(type, name)
     </tr>
     <tr>
         <td>
-             <select id="orgtype">
-                <option value="text">普通文本</option>
-                <option value="email">邮箱地址</option>
-                <option value="int">整数</option>
-                <option value="float">小数</option>
-                <option value="idcard">身份证号码</option>
-            </select>   
+             <select id="orgtype" onchange="orgtypeChange()">
+                 <option value="text">普通文本</option>
+                 <option value="email">邮箱地址</option>
+                 <option value="int">整数</option>
+                 <option value="float">小数</option>
+                 <option value="idcard">身份证号码</option>
+                 <option value="sys_date_time">日期时间输入 [ 1997-01-01 12:30 ]</option>
+                 <option value="sys_date">日期输入 [ 1997-01-01 ]</option>
+                 <option value="sys_time">时间输入 [ 12:30 ]</option>
+            </select>
         </td>
         <td>
             <select id="orgalign">
@@ -97,6 +100,18 @@ function createElement(type, name)
 </div>
 <script type="text/javascript">
 var oNode = null,thePlugins = 'text';
+var oldmaxlength=document.getElementById("maxlength").value;
+//对添加的身份证号、日期输入，都不需要设置最大长度，因为格式已固定
+function orgtypeChange(){
+    var objS = document.getElementById("orgtype");
+    if(objS.selectedIndex>3){
+        document.getElementById("maxlength").value="";
+        document.getElementById("maxlength").setAttribute("readonly","readonly");
+    }else{
+        document.getElementById("maxlength").value=oldmaxlength;
+        document.getElementById("maxlength").removeAttribute("readonly");
+    }
+}
 window.onload = function() {
     if( UE.plugins[thePlugins].editdom ){
         oNode = UE.plugins[thePlugins].editdom;
@@ -107,6 +122,7 @@ window.onload = function() {
 		gValue = gValue==null ? '' : gValue;
         gTitle = gTitle==null ? '' : gTitle;
         var maxLength=oNode.getAttribute('maxlength') ? oNode.getAttribute('maxlength') : '';
+        oldmaxlength=maxLength;
         var nullable=oNode.getAttribute('required');
 		$G('orgvalue').value = gValue;
         $G('orgname').value = gTitle;
@@ -137,7 +153,7 @@ dialog.onok = function (){
         return false;
     }
     var gValue=$G('orgvalue').value.replace(/\"/g,"&quot;"),gTitle=$G('orgname').value.replace(/\"/g,"&quot;"),gFontSize=$G('orgfontsize').value,gAlign=$G('orgalign').value,gWidth=$G('orgwidth').value,gHeight=$G('orgheight').value,gType=$G('orgtype').value;
-    var gMaxLength=$G('maxlength').value;debugger
+    var gMaxLength=$G('maxlength').value;
     if( !oNode ) {
         try {
             oNode = createElement('input','leipiNewField');

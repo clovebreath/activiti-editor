@@ -17,6 +17,8 @@
     <![endif]-->
     <link href="statics/css/formdesigner.css" rel="stylesheet" type="text/css" />
 
+    <link href="statics/js/datepicker-0.6.4/css/bootstrap-datetimepicker.css" rel="stylesheet" media="screen">
+
 </head>
 <body>
 
@@ -147,7 +149,7 @@
     </div>
 </div>
 
-                <script type="text/javascript" charset="utf-8" src="statics/js/formDesigner/jquery-1.7.2.min.js"></script>
+                <script type="text/javascript" charset="utf-8" src="statics/js/jquery-1.8.3.min.js"></script>
                 <script type="text/javascript" charset="UTF-8" src="statics/js/formDesigner/ueditor/formdesign/bootstrap/js/bootstrap.min.js"></script>
                 <script type="text/javascript" charset="utf-8" src="statics/js/formDesigner/ueditor/ueditor.config.js"></script>
                 <script type="text/javascript" charset="utf-8" src="statics/js/formDesigner/ueditor/ueditor.all.js"> </script>
@@ -157,6 +159,8 @@
                 <script type="text/javascript" charset="utf-8" src="statics/js/js.Date.js"></script>
                 <script type="text/javascript" charset="UTF-8" src="statics/js/formDesign.js"></script>
 
+                <script type="text/javascript" src="statics/js/datepicker-0.6.4/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
+                <script type="text/javascript" src="statics/js/datepicker-0.6.4/js/locales/bootstrap-datetimepicker.zh-CN.js" charset="UTF-8"></script>
                 <script type="text/javascript">
                     var leipiDialog = {
                         exec : function (method) {
@@ -402,6 +406,8 @@
                                 setTableBorder("preView");
                                 //初始化二维码
                                 initQrcode();
+                                //初始化时间控件
+                                initDatePicker();
                                 //展示模态框
                                 $('#myModal').modal();
 
@@ -430,6 +436,8 @@
                                 setTableBorder("preView");
                                 //初始化二维码
                                 initQrcode();
+                                //初始化时间控件
+                                initDatePicker();
                                 //展示模态框
                                 $('#myModal').modal();
 

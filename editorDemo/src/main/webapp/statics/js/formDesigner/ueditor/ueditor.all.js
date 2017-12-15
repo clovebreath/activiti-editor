@@ -8065,23 +8065,24 @@ UE.Editor.defaultOptions = function(editor){
                 /* 发出ajax请求 */
                 me._serverConfigLoaded = false;
 
-                configUrl && UE.ajax.request(configUrl,{
-                    'method': 'GET',
-                    'dataType': isJsonp ? 'jsonp':'',
-                    'onsuccess':function(r){
-                        try {
-                            var config = isJsonp ? r:eval("("+r.responseText+")");
-                            utils.extend(me.options, config);
-                            me.fireEvent('serverConfigLoaded');
-                            me._serverConfigLoaded = true;
-                        } catch (e) {
-                            showErrorMsg(me.getLang('loadconfigFormatError'));
-                        }
-                    },
-                    'onerror':function(){
-                        showErrorMsg(me.getLang('loadconfigHttpError'));
-                    }
-                });
+                // 表单设计并未涉及与后台交互功能，所以关闭从后台获取配置文件的方法。
+                // configUrl && UE.ajax.request(configUrl,{
+                //     'method': 'GET',
+                //     'dataType': isJsonp ? 'jsonp':'',
+                //     'onsuccess':function(r){
+                //         try {
+                //             var config = isJsonp ? r:eval("("+r.responseText+")");
+                //             utils.extend(me.options, config);
+                //             me.fireEvent('serverConfigLoaded');
+                //             me._serverConfigLoaded = true;
+                //         } catch (e) {
+                //             showErrorMsg(me.getLang('loadconfigFormatError'));
+                //         }
+                //     },
+                //     'onerror':function(){
+                //         showErrorMsg(me.getLang('loadconfigHttpError'));
+                //     }
+                // });
             } catch(e){
                 showErrorMsg(me.getLang('loadconfigError'));
             }

@@ -56,15 +56,16 @@
                 </div>
                 <div id="bpmn-property-area" class="easyui-window" style="width:400px;height: auto;overflow:hidden;" title="属性列表"
                      data-options="collapsible:true,minimizable:false,closable:false,modal:false,resizable:false">
-                    <div data-options="title:'property',collapsible:false" height="auto">
-                        <div id="bpmn-property-main" class="easyui-propertygrid" data-options="showGroup:true,showHeader:true,scrollbarSize:0,
-                                        columns: [[ { field: 'name', title: '基础属性',width:150, resizable: true }, { field: 'value', title: '值',width:250,resizable: false }]]"
-                             height="auto">
+                    <div data-options="title:'property',collapsible:false">
+                        <div id="bpmn-property-main" style="height: auto;" class="easyui-propertygrid" data-options="showGroup:true,showHeader:true,scrollbarSize:0,
+                                columns: [[ { field: 'name', title: '基础属性',fitColumns:true, resizable: true,formatter:formatChinese  },
+                                            { field: 'value', title: '值',width:100,fitColumns:true,resizable: true}]]">
                         </div>
                         <div id="bpmn-form-area">
-                            <div class="easyui-panel" data-options="title:'自定义属性',scrollbarSize:0,tools:'#bpmn-form-tool'" height="auto">
-                                <div id="bpmn-property-form" class="easyui-propertygrid" data-options="showGroup:true,showHeader:false,scrollbarSize:0,
-                                    columns: [[ { field: 'name',width:150, resizable: true }, { field: 'value',width:250,resizable: false }]]" height="auto">
+                            <div class="easyui-panel" data-options="title:'自定义属性',scrollbarSize:0,tools:'#bpmn-form-tool'">
+                                <div id="bpmn-property-form" class="easyui-propertygrid" style="height: auto;" data-options="showGroup:true,showHeader:false,scrollbarSize:0,
+                                    columns: [[ { field: 'name', title: '基础属性',fitColumns:true, resizable: true,formatter:formatChinese},
+                                                { field: 'value', title: '值',width:100,fitColumns:true,resizable: true }]]">
                                 </div>
                             </div>
                             <div id="bpmn-form-tool">
@@ -75,30 +76,29 @@
                 </div>
                 <div id="bpmn-canvas" class="easyui-droppable easyui-panel" data-options="title:'designer', accept:'.bpmn-list',fit:true,scrollbarSize:0,
                     tools:[{iconCls:'icon-save',handler:getSvgFile}]" style="overflow: hidden">
-                <div style="position:relative;width: 100%;height: 100%">
-                    <div id="svg-container" style="width: 100%;height: 100%">
-                        <svg id="bpmn-svg" type="bpmn-process" style="width: 100%;height: 100%;" xmlns="http://www.w3.org/2000/svg" version="1.1">
-                        </svg>
-                    </div>
-                    <div id="bpmn-menu-area">
-                        <div id="bpmn-menu-arrow" class="bpmn-menu easyui-draggable">
-                            <img src="statics/images/icons/connector/sequenceflow.png">
+                    <div style="position:relative;width: 100%;height: 100%">
+                        <div id="svg-container" style="width: 100%;height: 100%">
+                            <svg id="bpmn-svg" type="bpmn-process" style="width: 100%;height: 100%;" xmlns="http://www.w3.org/2000/svg" version="1.1">
+                            </svg>
                         </div>
-                        <div id="bpmn-menu-delete" class="bpmn-menu" onclick="deleteItem()">
-                            <img src="statics/images/icons/delete.png">
+                        <div id="bpmn-menu-area">
+                            <div id="bpmn-menu-arrow" class="bpmn-menu easyui-draggable">
+                                <img src="statics/images/icons/connector/sequenceflow.png">
+                            </div>
+                            <div id="bpmn-menu-delete" class="bpmn-menu" onclick="deleteItem()">
+                                <img src="statics/images/icons/delete.png">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            </div>
         </div>
-
+        <script type="text/javascript">
+            $(document).ready(function () {
+                //初始化
+                initDesigner();
+            });
+        </script>
     </body>
 </html>
 
-<script type="text/javascript">
-    $(document).ready(function () {
-        //初始化
-        initDesigner();
-    });
-</script>

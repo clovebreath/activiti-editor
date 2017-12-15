@@ -20,9 +20,24 @@ function getTable(parseFormData) {
             let style = content.match(styleMatcher)[0];
             for (let key in data) {
                 if ("orgtype" === key) {
-                    content = content.replace("orgtype", "type");
+                    if(data.orgtype.indexOf("sys_")!==-1){
+                        switch (data.orgtype){
+                            case "sys_date":
+                                content=content.replace("<input",`<input data-date-format="yyyy-mm-dd" readonly`);
+                                break;
+                            case "sys_date_time":
+                                content=content.replace("<input",`<input data-date-format="yyyy-mm-dd hh:ii" readonly`);
+                                break;
+                            case "sys_time":
+                                content=content.replace("<input",`<input data-date-format="hh:ii" readonly`);
+                                break;
+                        }
+                        content = content.replace(style, style.replace(";\"", ";cursor:pointer;\""));
+                    }else{
+                        content = content.replace("orgtype", "type");
+                    }
                 } else if (key === "orghide" && data[key] === "1") {
-                    content = content.replace(style, style.replace(";\"", "display:none;\""));
+                    content = content.replace(style, style.replace(";\"", ";display:none;\""));
                 }
             }
         }
@@ -184,7 +199,7 @@ function getTable(parseFormData) {
             content=`<div id="${name}" leipiplugins="${data.leipiplugins}" value="${data.value}" style="${data.style}" ></div>`;
         }
         else if (type === "select") {
-            //暂时无需处理
+
         }
 
 
@@ -315,4 +330,18 @@ function funDownload(content, filename) {
  */
 function submitFormDesigner(){
     funDownload($("#preView").html(),"form.form");
+}
+
+/**
+ * 初始化时间控件
+ */
+function initDatePicker(){
+    $('input[data-date-format]').datetimepicker({
+        language:  'zh-CN',
+        weekStart: 0,
+        todayBtn:  1,
+        autoclose: 1,
+        todayHighlight: 1,
+        autoHide: true
+    });
 }

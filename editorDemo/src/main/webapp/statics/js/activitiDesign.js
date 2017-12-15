@@ -15,6 +15,12 @@ const BPMN_PROCESS = "bpmn-process";
  * 5--BPMN_GATEWAY_EXCLUSIVE
  */
 let nomalTableIds=[];
+/**
+ * 用于分组展示其对应的中文
+ */
+const groupHeader={'General':'基础属性','Main Config':'额外配置','Process':'全局属性','Multi Instance':'多示例','id':'ID','name':'名称','initiator':'发起人',
+'formKey':'对应表单名','assignee':'受让人','candidateUsers':'执行用户','candidateGroups':'执行用户组','collection':'集合','elementVariable':'组件变量',
+'condition':'执行条件','type':'类型','default':'默认值'};
 const startEventConfig = [
     {
         "name": "id",
@@ -31,13 +37,13 @@ const startEventConfig = [
     {
         "name": "initiator",
         "value": "",
-        "group": "main config",
+        "group": "Main Config",
         "editor": "text"
     },
     {
         "name": "formKey",
         "value": "",
-        "group": "main config",
+        "group": "Main Config",
         "editor": "text"
     }
 ];
@@ -85,37 +91,37 @@ const userTaskConfig=[
     {
         "name": "assignee",
         "value": "",
-        "group": "main config",
+        "group": "Main Config",
         "editor": "text"
     },
     {
         "name": "candidateUsers",
         "value": "",
-        "group": "main config",
+        "group": "Main Config",
         "editor": "text"
     },
     {
         "name": "candidateGroups",
         "value": "",
-        "group": "main config",
+        "group": "Main Config",
         "editor": "text"
     },
     {
         "name": "formKey",
         "value": "",
-        "group": "main config",
+        "group": "Main Config",
         "editor": "text"
     },
     {
         "name": "collection",
         "value": "",
-        "group": "multi instance",
+        "group": "Multi Instance",
         "editor": "text"
     },
     {
         "name": "elementVariable",
         "value": "",
-        "group": "multi instance",
+        "group": "Multi Instance",
         "editor": "text"
     }
 ];
@@ -175,6 +181,14 @@ let processUuid = Math.uuid();
 let fromPropertyIndex = [];
 
 /**
+ * 格式化方法，将英文转化为对应中文
+ * @param value
+ * @returns {*}
+ */
+function formatChinese(value) {
+    return groupHeader[value];
+}
+/**
  * 初始化
  */
 function initDesigner() {
@@ -209,6 +223,11 @@ function initDesigner() {
     });
 
     //表格初始化
+    //添加分组中文展示方法-main
+    $('#bpmn-property-main').datagrid({
+        groupFormatter:formatChinese
+    });
+    //加载初始数据
     $('#bpmn-property-main').propertygrid("loadData", JSON.parse(JSON.stringify(processConfig)));
     $('#bpmn-property-main').datagrid("updateRow",{"index":0,"row":{
         "name": "id",
@@ -216,7 +235,13 @@ function initDesigner() {
         "group": "Process",
         "editor": "text"
     }});
-    //Form区域
+    //添加分组中文展示方法-form
+    $('#bpmn-property-form').datagrid({
+        groupFormatter:function (value){
+            return value.replace("property","属性");
+        }
+    });
+    //Form区域隐藏
     $('#bpmn-form-area').hide();
     //修改两个对话框的位置
     let dialogWindow=$("body>div");
@@ -225,6 +250,7 @@ function initDesigner() {
     dialogWindow.eq(2).css("top",(canvesWindow.top)+"px").css("left", (canvesWindow.left)+`px`);
     dialogWindow.eq(3).css("top",(canvesWindow.top)+"px").css("left",canvesWindow.left+$("#bpmn-canvas")[0].clientWidth-dialogWindow[3].clientWidth);
     dialogWindow.eq(4).css("top",(canvesWindow.top)+"px").css("left",canvesWindow.left+$("#bpmn-canvas")[0].clientWidth-dialogWindow[3].clientWidth);
+
     //初始化时需要触发svg面板的点击事件
     $("[type='bpmn-process']").click();
 }
@@ -633,7 +659,7 @@ function onSvgItemDrag() {
  * @param eventX
  * @param eventY
  * @param element
- * @returns {{canDrag: boolean, limitX: null, limitY: null}}
+ * @returns {{canDrag: boolean}}
  */
 function getDragStatus(eventX,eventY,element){
     //暂时只有一个属性：能否移动。
@@ -1045,7 +1071,7 @@ function getStartEventXml(uuid){
                     tempXml=tempXml.replace("_"+data.name+"_","");
                 }
                 break;
-            case "main config":
+            case "Main Config":
                 if(data.value){
                     tempXml=tempXml.replace("_activiti:"+data.name+"_","activiti:"+data.name+"=\""+data.value+"\"");
                 }else{
@@ -1152,7 +1178,7 @@ function getSequenceFlowXml(uuid){
 function getUserTaskXml(uuid){
     let tempXml=" <userTask _id_ _name_ _activiti:assignee_ _activiti:formKey_ _activiti:candidateGroups_ _activiti:candidateUsers_>\n_subItem_";
     let formProperties=[];
-    let formPropertyXml="<activiti:formProperty _id_ _type_ _default_ ></activiti:formProperty>\n";
+    let formPropertyXml="<activiti:formProperty _id_ _type_ _default_ ></activiti:formProperty>";
     let multiInstance="<multiInstanceLoopCharacteristics isSequential=\"false\" _activiti:collection_ " +
         "_activiti:elementletiable_></multiInstanceLoopCharacteristics>\n";
     let datas=d3.select("[uuid='"+uuid+"']").data()[0];
@@ -1164,13 +1190,13 @@ function getUserTaskXml(uuid){
             } else {
                 tempXml=tempXml.replace("_" + data.name + "_", "");
             }
-        } else if (data.group === "main config") {
+        } else if (data.group === "Main Config") {
             if (data.value) {
                 tempXml=tempXml.replace("_activiti:" + data.name + "_", "activiti:"+data.name + "=\"" + data.value + "\"");
             } else {
                 tempXml=tempXml.replace("_activiti:" + data.name + "_", "");
             }
-        } else if (data.group === "multi instance") {
+        } else if (data.group === "Multi Instance") {
             if (data.value) {
                 multiInstance=multiInstance.replace("_activiti:" + data.name + "_", "activiti:"+data.name + "=\"" + data.value + "\"");
             } else {
@@ -1197,7 +1223,7 @@ function getUserTaskXml(uuid){
             tempXml=tempXml.replace("_subItem_",formProperties[key]+"\n_subItem_");
         }
     }
-    return tempXml.replace("_subItem_","")+"\n</userTask>";
+    return tempXml.replace("_subItem_","")+"\n</userTask>\n";
 }
 
 /**
