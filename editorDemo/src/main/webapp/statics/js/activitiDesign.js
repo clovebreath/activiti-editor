@@ -889,7 +889,7 @@ function bindPropertiesToItem(element) {
     if(mainData[0].name&&mainData[0].name==="id"){
         element.id=mainData[0].value;
     }else{
-        console.log("line set id to element error, id:",mainData[0].name,mainData[0].value);
+        console.log("set id to element error, id:",mainData[0].name,mainData[0].value);
     }
 
 }
