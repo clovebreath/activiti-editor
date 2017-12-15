@@ -249,7 +249,7 @@ function initDesigner() {
     dialogWindow.eq(1).css("top",(canvesWindow.top)+"px").css("left", (canvesWindow.left)+`px`);
     dialogWindow.eq(2).css("top",(canvesWindow.top)+"px").css("left", (canvesWindow.left)+`px`);
     dialogWindow.eq(3).css("top",(canvesWindow.top)+"px").css("left",canvesWindow.left+$("#bpmn-canvas")[0].clientWidth-dialogWindow[3].clientWidth);
-    dialogWindow.eq(4).css("top",(canvesWindow.top)+"px").css("left",canvesWindow.left+$("#bpmn-canvas")[0].clientWidth-dialogWindow[3].clientWidth);
+    dialogWindow.eq(4).css("top",(canvesWindow.top)+"px").css("left",canvesWindow.left+$("#bpmn-canvas")[0].clientWidth-dialogWindow[3].clientWidth-1);
 
     //初始化时需要触发svg面板的点击事件
     $("[type='bpmn-process']").click();
@@ -538,6 +538,8 @@ function drowFlow(itemStart, itemEnd, uuid, id) {
                     flow.attr("id", id);
                 }
             }
+        }else{
+            console.log("draw line error:",flow)
         }
     }
     return flow;
@@ -629,6 +631,8 @@ function reDrowPath(item) {
  * svg元素移动开始前的事件
  */
 function onSvgItemDragStart() {
+    //触发前半段点击事件
+    bindPropertiesToItem(selectSvgItem);
     $("#bpmn-menu-area").hide();
 }
 
@@ -711,7 +715,9 @@ function getDragStatus(eventX,eventY,element){
  * svg元素移动完的事件
  */
 function onSvgItemDragEnd() {
-    $(this).click();
+    //触发后半段点击事件
+    setMiniMenu(this);
+    showPropertiesTable(this);
 }
 
 /**
@@ -721,22 +727,25 @@ function onSvgItemDragEnd() {
 function setMiniMenu(element) {
     //设置被选中的item
     selectSvgItem = element;
-    if (BPMN_PROCESS !== element.getAttribute("type")) {
+    //如果是svg面板，隐藏浮动菜单
+    if (BPMN_PROCESS === element.getAttribute("type")) {
+        $("#bpmn-menu-area").hide();
+    }
+    //如果是连线，则隐藏连线图标,小菜单移动到中心位置
+    else if(BPMN_SEQUENCE_FLOW === element.getAttribute("type")){
+        $("#bpmn-menu-area").css("left",(parseInt($(element).attr('x1'))+parseInt($(element).attr("x2")))/2)
+            .css("top",(parseInt($(element).attr('y1'))+parseInt($(element).attr("y2")))/2);
+        $("#bpmn-menu-area").show();
+        $("#bpmn-menu-arrow").hide();
+    }
+    else {
         let outingBox = selectSvgItem.getBBox();
         let midPointX = outingBox.x + outingBox.width / 2;
         let midPointY = outingBox.y + outingBox.height / 2;
         $("#bpmn-menu-area").show();
+        $("#bpmn-menu-arrow").show();
         $("#bpmn-menu-area").css("left", outingBox.x);
         $("#bpmn-menu-area").css("top", outingBox.y + outingBox.height);
-    } else {
-        $("#bpmn-menu-area").hide();//隐藏浮动菜单
-    }
-
-    //如果是连线，则隐藏连线图标
-    if (BPMN_SEQUENCE_FLOW === element.getAttribute("type")) {
-        $("#bpmn-menu-arrow").hide();
-    } else {
-        $("#bpmn-menu-arrow").show();
     }
 }
 
@@ -880,7 +889,7 @@ function bindPropertiesToItem(element) {
     if(mainData[0].name&&mainData[0].name==="id"){
         element.id=mainData[0].value;
     }else{
-        console.log("set id to element error, id:",mainData[0].name,mainData[0].value);
+        console.log("line set id to element error, id:",mainData[0].name,mainData[0].value);
     }
 
 }
@@ -1308,6 +1317,5 @@ function getItemBpmn(item,bpmnProcessChilds,bpmnPlaneChilds) {
 
     bpmnProcessChilds.push(tempItemXml);
     bpmnPlaneChilds.push(tempPlaneXml);
-    console.log("get item xml finished .",bpmnProcessChilds.length,bpmnPlaneChilds.length);
     return true;
 }
