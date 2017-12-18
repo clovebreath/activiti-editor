@@ -243,16 +243,23 @@ function initDesigner() {
     });
     //Form区域隐藏
     $('#bpmn-form-area').hide();
-    //修改两个对话框的位置
+    //调整对话框的位置
+    setDialogPosition();
+    //初始化时需要触发svg面板的点击事件
+    $("[type='bpmn-process']").click();
+}
+
+/**
+ * 调整对话框的位置。
+ */
+function setDialogPosition(){
+    console.log("setdialog");
     let dialogWindow=$("body>div");
     let canvesWindow=$("#bpmn-canvas").offset();
     dialogWindow.eq(1).css("top",(canvesWindow.top)+"px").css("left", (canvesWindow.left)+`px`);
     dialogWindow.eq(2).css("top",(canvesWindow.top)+"px").css("left", (canvesWindow.left)+`px`);
     dialogWindow.eq(3).css("top",(canvesWindow.top)+"px").css("left",canvesWindow.left+$("#bpmn-canvas")[0].clientWidth-dialogWindow[3].clientWidth);
     dialogWindow.eq(4).css("top",(canvesWindow.top)+"px").css("left",canvesWindow.left+$("#bpmn-canvas")[0].clientWidth-dialogWindow[3].clientWidth-1);
-
-    //初始化时需要触发svg面板的点击事件
-    $("[type='bpmn-process']").click();
 }
 
 /**
