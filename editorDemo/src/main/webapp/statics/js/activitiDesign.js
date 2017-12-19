@@ -298,9 +298,12 @@ function getElementByPosition(svgX, svgY) {
     let tempItem = null;
     d3.selectAll("svg>g").each(
         function () {
-            let box = this.getBBox();
-            if (box.x < svgX && svgX < (box.x + box.width) && box.y < svgY && svgY < (box.y + box.height)) {
-                tempItem = this;
+            //首先要排除连线的干扰
+            if(this.getAttribute("type")!==BPMN_SEQUENCE_FLOW){
+                let box = this.getBBox();
+                if (box.x < svgX && svgX < (box.x + box.width) && box.y < svgY && svgY < (box.y + box.height)) {
+                    tempItem = this;
+                }
             }
         }
     );
@@ -726,44 +729,46 @@ function getDragStatus(eventX,eventY,element){
     let status={
         "canDrag":true
     };
-    //todo 以下代码判断时导致系统卡顿，需要优化
-    // let eleBox=element.getBBox();
-    // //与其他item的最小距离为6px,(下面计算结果可能出现为3px的情况);
-    // let x0=eventX-6,x1=x0+eleBox.width+12;
-    // let y0=eventY-6,y1=y0+eleBox.height+12;
-    // for(let x=x0;x<=x1;x=x+3){
-    //     let tmpItem=getElementByPosition(x, y0);
-    //     if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
-    //         status.canDrag=false;
-    //         break;
-    //     }
-    //     tmpItem=getElementByPosition(x, y1);
-    //     if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
-    //         status.canDrag=false;
-    //         break;
-    //     }
-    // }
-    // for(let y=y0;y<=y1;y=y+3){
-    //     let tmpItem=getElementByPosition(x0, y);
-    //     if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
-    //         status.canDrag=false;
-    //         break;
-    //     }
-    //     tmpItem=getElementByPosition(x1, y);
-    //     if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
-    //         status.canDrag=false;
-    //         break;
-    //     }
-    // }
-    //
-    // d3.selectAll("svg>g").each(
-    //     function () {
-    //         let box = this.getBBox();
-    //         if ( x0<=box.x && ((box.x+box.width)<=x1) && y0<=box.y && ((box.y+box.height)<=y1 && this.getAttribute("uuid")!==element.getAttribute("uuid")) ) {
-    //             status.canDrag=false;
-    //         }
-    //     }
-    // );
+    let eleBox=element.getBBox();
+    //与其他item的最小距离为6px,(下面计算结果可能出现为3px的情况);
+    let x0=eventX-6,x1=x0+eleBox.width+12;
+    let y0=eventY-6,y1=y0+eleBox.height+12;
+    for(let x=x0;x<=x1;x=x+3){
+        let tmpItem=getElementByPosition(x, y0);
+        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+            status.canDrag=false;
+            break;
+        }
+        tmpItem=getElementByPosition(x, y1);
+        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+            status.canDrag=false;
+            break;
+        }
+    }
+    for(let y=y0;y<=y1;y=y+3){
+        let tmpItem=getElementByPosition(x0, y);
+        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+            status.canDrag=false;
+            break;
+        }
+        tmpItem=getElementByPosition(x1, y);
+        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+            status.canDrag=false;
+            break;
+        }
+    }
+
+    d3.selectAll("svg>g").each(
+        function () {
+            //首先要排除连线的干扰
+            if(this.getAttribute("type")!==BPMN_SEQUENCE_FLOW){
+                let box = this.getBBox();
+                if ( x0<=box.x && ((box.x+box.width)<=x1) && y0<=box.y && ((box.y+box.height)<=y1 && this.getAttribute("uuid")!==element.getAttribute("uuid")) ) {
+                    status.canDrag=false;
+                }
+            }
+        }
+    );
 
     return status;
 }
@@ -971,7 +976,7 @@ function bindPropertiesToItem(element) {
 }
 
 /**
- * 根据文字长度调整组内元素大小
+ * 根据文字长度调整组内元素大小 todo 需要考虑调整大小后与其他节点是否重叠的问题
  * @param group
  */
 function resizeGroup(group){
