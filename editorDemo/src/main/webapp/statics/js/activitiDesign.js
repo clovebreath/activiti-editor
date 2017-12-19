@@ -160,16 +160,11 @@ const sequenceFlowConfig=[
     }
 ];
 
+//svg初始属性
 const svgStroke = "#808080";
 const svgStorkeWidth = 2;
-//由于使用的图片，width和height只会有一个生效，另一个则按照比例缩放。实际代码中优先使用height：见function appendItem。
-const svgWidth = 45;
-const svgHeight = 45;
-//图片路径，iconDragStop(e)方法中使用该路径绘图
-const startEventImage="/statics/images/silver.png";
-const endEventImage="/statics/images/grey.png";
-const userTaskImage="/statics/images/yellow.png";
-const exclusiceGatewayImage="/statics/images/green.png";
+const svgWidth = 80;
+const svgHeight = 48;
 
 //svg对象
 let bpmnSvg = null;
@@ -188,6 +183,7 @@ let fromPropertyIndex = [];
 function formatChinese(value) {
     return groupHeader[value];
 }
+
 /**
  * 初始化
  */
@@ -214,12 +210,20 @@ function initDesigner() {
         .attr("fill", "#808080");
     //拖拽-左侧菜单栏
     $('.bpmn-list').draggable({
-        revert: true, cursor: 'pointer', proxy: getObj, onStopDrag: iconDragStop
+        revert: true, cursor: 'pointer', proxy: function getObj(source) {
+            let p = $('<div style="border:1px solid #ccc;width:auto"></div>');
+            p.html($(source).html()).appendTo('body');
+            return p;
+        }, onStopDrag: iconDragStop
     });
 
     //拖拽-箭头
     $('#bpmn-menu-arrow').draggable({
-        revert: true, cursor: 'pointer', proxy: 'clone', onStopDrag: arrowDragStop
+        revert: true, cursor: 'pointer', proxy: function getObj(source) {
+            let p = $('<div style="width:auto"></div>');
+            p.html($(source).html()).appendTo('body');
+            return p;
+        }, onStopDrag: arrowDragStop
     });
 
     //表格初始化
@@ -244,16 +248,21 @@ function initDesigner() {
     //Form区域隐藏
     $('#bpmn-form-area').hide();
     //调整对话框的位置
-    setDialogPosition();
+    let dialogWindow=$("body>div");
+    let canvesWindow=$("#bpmn-canvas").offset();
+    dialogWindow.eq(1).css("top",(canvesWindow.top)+"px").css("left", (canvesWindow.left)+`px`);
+    dialogWindow.eq(2).css("top",(canvesWindow.top)+"px").css("left", (canvesWindow.left)+`px`);
+    dialogWindow.eq(3).css("top",(canvesWindow.top)+"px").css("left",canvesWindow.left+$("#bpmn-canvas")[0].clientWidth-dialogWindow[3].clientWidth);
+    dialogWindow.eq(4).css("top",(canvesWindow.top)+"px").css("left",canvesWindow.left+$("#bpmn-canvas")[0].clientWidth-dialogWindow[3].clientWidth-1);
     //初始化时需要触发svg面板的点击事件
     $("[type='bpmn-process']").click();
 }
 
 /**
- * 调整对话框的位置。
+ * 调整对话框的位置。todo 修改为在页面同样比例的位置。
+ * 目前代码使页面大小改变后对话框改变了位置
  */
 function setDialogPosition(){
-    console.log("setdialog");
     let dialogWindow=$("body>div");
     let canvesWindow=$("#bpmn-canvas").offset();
     dialogWindow.eq(1).css("top",(canvesWindow.top)+"px").css("left", (canvesWindow.left)+`px`);
@@ -273,7 +282,7 @@ function arrowDragStop(e) {
     if (postionX > 0 && positonY > 0) {
         let targetItem = getElementByPosition(postionX, positonY);
         if (targetItem !== null) {
-            let flow = drowFlow(selectSvgItem, targetItem);
+            let flow = drawFlow(selectSvgItem, targetItem);debugger
             $(flow.node()).click();
         }
     }
@@ -287,7 +296,7 @@ function arrowDragStop(e) {
  */
 function getElementByPosition(svgX, svgY) {
     let tempItem = null;
-    d3.selectAll("svg>image").each(
+    d3.selectAll("svg>g").each(
         function () {
             let box = this.getBBox();
             if (box.x < svgX && svgX < (box.x + box.width) && box.y < svgY && svgY < (box.y + box.height)) {
@@ -341,8 +350,8 @@ function iconDragStop(e) {
         .subject(function () {
             let t = d3.select(this);
             return {
-                x: t.attr("x"),
-                y: t.attr("y")
+                x: t.node().getBBox().x,
+                y: t.node().getBBox().y
             };
         });
     let item=null;
@@ -350,22 +359,22 @@ function iconDragStop(e) {
     if (e.data.top > canvasTop && checkDragPosition(e.data.left,e.data.top)) {
         switch (e.data.target.id) {
             case BPMN_EVENT_START:
-                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop,startEventImage,svgWidth,svgHeight)
+                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop,svgWidth,svgHeight)
                     .attr("type", BPMN_EVENT_START)
                     .call(dragEvent);
                 break;
             case BPMN_EVENT_END:
-                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop, endEventImage,svgWidth,svgHeight)
+                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop,svgWidth,svgHeight)
                     .attr("type", BPMN_EVENT_END)
                     .call(dragEvent);
                 break;
             case BPMN_TASK_USER:
-                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop,userTaskImage,svgWidth,svgHeight)
+                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop,svgWidth,svgHeight)
                     .attr("type", BPMN_TASK_USER)
                     .call(dragEvent);
                 break;
             case BPMN_GATEWAY_EXCLUSIVE:
-                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop, exclusiceGatewayImage,svgWidth,svgHeight)
+                item = appendItem(bpmnSvg, e.data.left-canvasLeft, e.data.top-canvasTop,svgWidth,svgHeight)
                     .attr("type", BPMN_GATEWAY_EXCLUSIVE)
                     .call(dragEvent);
                 break;
@@ -397,17 +406,6 @@ function checkDragPosition(posX,posY){
         }
     }
     return true;
-}
-
-/**
- * 生成被拖拽的对象
- * @param source
- * @returns {*|jQuery|HTMLElement}
- */
-function getObj(source) {
-    let p = $('<div style="border:1px solid #ccc;width:auto"></div>');
-    p.html($(source).html()).appendTo('body');
-    return p;
 }
 
 /**
@@ -489,14 +487,12 @@ function angle(start,end){
  * 在两个元素之间画连接线
  * @param itemStart
  * @param itemEnd
- * @param uuid
- * @param id
  * @returns {*}
  */
-function drowFlow(itemStart, itemEnd, uuid, id) {
+function drawFlow(itemStart, itemEnd) {
     let startUuid=itemStart.getAttribute("uuid");
     let endUuid=itemEnd.getAttribute("uuid");
-    let flow;
+    let flow;debugger
     //如果已存在连线，则直接返回
     if($(`[target-ref="${endUuid}"][source-ref="${startUuid}"]`).attr("type")===BPMN_SEQUENCE_FLOW){
         flow = d3.select(`[target-ref="${endUuid}"][source-ref="${startUuid}"]`);
@@ -507,44 +503,31 @@ function drowFlow(itemStart, itemEnd, uuid, id) {
         let x11 = boxStart.x, x12 = boxStart.x + boxStart.width, x21 = boxEnd.x, x22 = boxEnd.x + boxEnd.width;
         let y11 = boxStart.y, y12 = boxStart.y + boxStart.height, y21 = boxEnd.y, y22 = boxEnd.y + boxEnd.height;
         let x1m = (x11 + x12) / 2, x2m = (x21 + x22) / 2, y1m = (y11 + y12) / 2, y2m = (y21 + y22) / 2;
+        let group=bpmnSvg.append("g");
         switch (flowType) {
             case "N":
-                flow = appendLine(bpmnSvg,x1m,y11,x2m,y22);
+                flow = appendLine(group,x1m,y11,x2m,y22);
                 break;
             case "S":
-                flow = appendLine(bpmnSvg,x1m,y12,x2m,y21);
+                flow = appendLine(group,x1m,y12,x2m,y21);
                 break;
             case "E":
-                flow = appendLine(bpmnSvg,x12,y1m,x21,y2m);
+                flow = appendLine(group,x12,y1m,x21,y2m);
                 break;
             case "W":
-                flow = appendLine(bpmnSvg,x11,y1m,x22,y2m);
+                flow = appendLine(group,x11,y1m,x22,y2m);
                 break;
-            case "EN":
-                flow = appendLine(bpmnSvg,x12,y11,x21,y22);
-                break;
-            case "ES":
-                flow = appendLine(bpmnSvg,x12,y12,x21,y21);
-                break;
-            case "WN":
-                flow = appendLine(bpmnSvg,x11,y11,x22,y22);
-                break;
-            case "WS":
-                flow = appendLine(bpmnSvg,x11,y12,x22,y21);
-                break;
-            default:
-                break;
+            default:break;
         }
         if(flow){
-            flow.attr("target-ref",endUuid).attr("source-ref",startUuid).attr("type",BPMN_SEQUENCE_FLOW);
+            flow.attr("uuid", Math.uuid())
+                .attr("target-ref",endUuid)
+                .attr("source-ref",startUuid)
+                .attr("type",BPMN_SEQUENCE_FLOW);
+            $(flow.node()).click(function (event) {
+                clickSvgElement(event);
+            });
             flow.node().__data__=[];
-            //对于重绘的flow，将uuid改为原有的uuid
-            if (uuid) {
-                flow.attr("uuid", uuid);
-                if ( id ) {
-                    flow.attr("id", id);
-                }
-            }
         }else{
             console.log("draw line error:",flow)
         }
@@ -559,75 +542,137 @@ function drowFlow(itemStart, itemEnd, uuid, id) {
  * @param y
  * @param width
  * @param height
- * @param imageUrl
  */
-function appendItem(svgContainer,x,y,imageUrl,width,height){
-    let item=svgContainer.append("image").attr("href",imageUrl).attr("x",parseInt(x)).attr("y",parseInt(y)).attr("uuid", Math.uuid());
-    if(height){//只设定高，宽会根据图片比例生成
-        item.attr("height",height);
-    }else if(width){//只设定宽，高会根据图片比例生成
-        item.attr("width",width);
-    }
-    $(item.node()).click(function (event) {
+function appendItem(svgContainer,x,y,width,height){
+    let group=svgContainer.append("g").attr("uuid", Math.uuid());
+    let item=group.append("rect")
+        .attr("x",parseInt(x))
+        .attr("y",parseInt(y))
+        .attr("width",parseInt(width))
+        .attr("height",parseInt(height))
+        .attr("stroke-width",0)
+        .attr("rx",10)
+        .attr("ry",10);
+    let label=group.append("text")
+        .attr("x",parseInt(x)+parseInt(width)/2)
+        .attr("y",parseInt(y)+parseInt(height)/2)
+        .attr("text-anchor","middle")
+        .attr("dominant-baseline","middle");
+    $(group.node()).click(function (event) {
         clickSvgElement(event);
     });
-   return item;
+    return group;
 }
 
 /**
  * 画线
- * @param svgContainer
+ * @param group
  * @param x1
  * @param y1
  * @param x2
  * @param y2
- * @param imageUrl
  */
-function appendLine(svgContainer, x1, y1, x2, y2,imageUrl) {
-    let svgLine = svgContainer.append("line")
+function appendLine(group, x1, y1, x2, y2) {
+    let svgLine = group.append("line")
         .attr("x1", parseInt(x1))
         .attr("y1", parseInt(y1))
         .attr("x2", parseInt(x2))
         .attr("y2", parseInt(y2))
         .attr("stroke", svgStroke)
         .attr("stroke-width", svgStorkeWidth)
-        .attr("marker-end", "url(#arrow)")
-        .attr("uuid", Math.uuid());
-    $(svgLine.node()).click(function (event) {
-        clickSvgElement(event);
-    });
-    return svgLine;
+        .attr("marker-end", "url(#arrow)");
+    let label=group.append("text")
+        .attr("x",svgLine.node().getBBox().x+svgLine.node().getBBox().width/2)
+        .attr("y",svgLine.node().getBBox().y+svgLine.node().getBBox().height/2)
+        .attr("text-anchor","middle")
+        .attr("dominant-baseline","middle");
+    return group;
+}
+
+/**
+ * 修改连线
+ * @param group
+ * @param x1
+ * @param y1
+ * @param x2
+ * @param y2
+ */
+function changeLine(group, x1, y1, x2, y2) {
+    // let newGroup=bpmnSvg.append("g")
+    //     .attr("uuid",group.attr("uuid"))
+    //     .attr("id",group.attr("id"))
+    //     .attr("source-ref",group.attr("source-ref"))
+    //     .attr("target-ref",group.attr("target-ref"))
+    //     .attr("type",group.attr("type"))
+    // ;
+    // let svgLine=newGroup.append("line")
+    //     .attr("x1", x1)
+    //     .attr("y1", y1)
+    //     .attr("x2", x2)
+    //     .attr("y2", y2)
+    //     .attr("stroke", svgStroke)
+    //     .attr("stroke-width", svgStorkeWidth)
+    //     .attr("marker-end", "url(#arrow)");
+    // newGroup.append("text")
+    //     .attr("x",svgLine.node().getBBox().x+svgLine.node().getBBox().width/2)
+    //     .attr("y",svgLine.node().getBBox().y+svgLine.node().getBBox().height/2)
+    //     .attr("text-anchor","middle")
+    //     .attr("dominant-baseline","middle");
+    // $(newGroup.node()).click(function (event) {
+    //     clickSvgElement(event);
+    // });
+    // newGroup.datum(group.data());
+
+    let svgLine = group.select("line")
+        .attr("x1", x1)
+        .attr("y1", y1)
+        .attr("x2", x2)
+        .attr("y2", y2);
+    let label = group.select("text")
+        .attr("x",svgLine.node().getBBox().x+svgLine.node().getBBox().width/2)
+        .attr("y",svgLine.node().getBBox().y+svgLine.node().getBBox().height/2);
+    return group;
 }
 
 /**
  * 移动元素后重新绘制连接线
  * @param item
  */
-function reDrowPath(item) {
-    d3.selectAll("line").each(
-        function (d, i) {
-            if (this.getAttribute("source-ref") === item.getAttribute("uuid")) {
-                let condition = "[type][uuid=" + this.getAttribute('target-ref') + "]";
-                let otherItem = $(condition)[0];
-                let uuid=this.getAttribute("uuid");
-                let id=this.getAttribute("id");
-                //先删除后添加
-                d3.select(this).remove();
-                let flow=drowFlow(item, otherItem, uuid,id);
-                if(flow){
-                    flow.datum(d);
-                }
+function reDrawPath(item) {
+    d3.selectAll("g[target-ref][source-ref]").each(
+        function(){
+            let group=d3.select(this);
+            let flowType, boxStart, boxEnd;
+            if (item.getAttribute("uuid") === this.getAttribute("source-ref")) {
+                let otherItem = $("[type][uuid=" + this.getAttribute('target-ref') + "]")[0];
+                flowType = getFlowType(item, otherItem);
+                boxStart = item.getBBox();
+                boxEnd = otherItem.getBBox();
             }
-            if (this.getAttribute("target-ref") === item.getAttribute("uuid")) {
-                let condition = "[type][uuid=" + this.getAttribute('source-ref') + "]";
-                let otherItem = $(condition)[0];
-                let uuid=this.getAttribute("uuid");
-                let id=this.getAttribute("id");
-                //先删除后添加
-                d3.select(this).remove();
-                let flow=drowFlow(otherItem, item, uuid,id);
-                if(flow){
-                    flow.datum(d);
+            else if (item.getAttribute("uuid") === this.getAttribute("target-ref")) {
+                let otherItem = $("[type][uuid=" + this.getAttribute('source-ref') + "]")[0];
+                flowType = getFlowType(otherItem,item);
+                boxStart = otherItem.getBBox();
+                boxEnd = item.getBBox();
+            }
+            if(flowType && boxStart && boxEnd){
+                let x11 = boxStart.x, x12 = boxStart.x + boxStart.width, x21 = boxEnd.x, x22 = boxEnd.x + boxEnd.width;
+                let y11 = boxStart.y, y12 = boxStart.y + boxStart.height, y21 = boxEnd.y, y22 = boxEnd.y + boxEnd.height;
+                let x1m = (x11 + x12) / 2, x2m = (x21 + x22) / 2, y1m = (y11 + y12) / 2, y2m = (y21 + y22) / 2;
+                switch (flowType) {
+                    case "N":
+                        changeLine(group,x1m,y11,x2m,y22);
+                        break;
+                    case "S":
+                        changeLine(group,x1m,y12,x2m,y21);
+                        break;
+                    case "E":
+                        changeLine(group,x12,y1m,x21,y2m);
+                        break;
+                    case "W":
+                        changeLine(group,x11,y1m,x22,y2m);
+                        break;
+                    default:break;
                 }
             }
         }
@@ -638,30 +683,34 @@ function reDrowPath(item) {
  * svg元素移动开始前的事件
  */
 function onSvgItemDragStart() {
-    //触发前半段点击事件
-    bindPropertiesToItem(selectSvgItem);
-    $("#bpmn-menu-area").hide();
+    //触发主面板点击事件
+    $("svg").click();
 }
 
 /**
  *svg元素移动事件
  */
 function onSvgItemDrag() {
+
     let eventX = parseInt(d3.event.x);
     let eventY = parseInt(d3.event.y);
+    let nodes=d3.select(this).node().children;
     //根据当前状态修改位置
     if(getDragStatus(eventX,eventY,this).canDrag){
-        d3.select(this).attr("x",eventX).attr("y", eventY);
-        reDrowPath(this);
+        $(nodes[0]).attr("x",eventX).attr("y", eventY);
+        $(nodes[1]).attr("x",eventX+nodes[0].getBBox().width/2).attr("y", eventY+nodes[0].getBBox().height/2);
+        reDrawPath(this);
     }
     //若不能完全实现鼠标目标方向，则尝试x轴或y轴的平移
     else if(getDragStatus(eventX,this.getBBox().y,this).canDrag){
-        d3.select(this).attr("x",eventX);
-        reDrowPath(this);
+        $(nodes[0]).attr("x",eventX);
+        $(nodes[1]).attr("x",eventX+nodes[0].getBBox().width/2);
+        reDrawPath(this);
     }
     else if(getDragStatus(this.getBBox().x,eventY,this).canDrag){
-        d3.select(this).attr("y",eventY);
-        reDrowPath(this);
+        $(nodes[0]).attr("y", eventY);
+        $(nodes[1]).attr("y", eventY+nodes[0].getBBox().height/2);
+        reDrawPath(this);
     }
 }
 
@@ -677,43 +726,44 @@ function getDragStatus(eventX,eventY,element){
     let status={
         "canDrag":true
     };
-    let eleBox=element.getBBox();
-    //与其他item的最小距离为6px,(下面计算结果可能出现为3px的情况);
-    let x0=eventX-6,x1=x0+eleBox.width+12;
-    let y0=eventY-6,y1=y0+eleBox.height+12;
-    for(let x=x0;x<=x1;x=x+3){
-        let tmpItem=getElementByPosition(x, y0);
-        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
-            status.canDrag=false;
-            break;
-        }
-        tmpItem=getElementByPosition(x, y1);
-        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
-            status.canDrag=false;
-            break;
-        }
-    }
-    for(let y=y0;y<=y1;y=y+3){
-        let tmpItem=getElementByPosition(x0, y);
-        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
-            status.canDrag=false;
-            break;
-        }
-        tmpItem=getElementByPosition(x1, y);
-        if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
-            status.canDrag=false;
-            break;
-        }
-    }
-
-    d3.selectAll("svg>image").each(
-        function () {
-            let box = this.getBBox();
-            if ( x0<=box.x && ((box.x+box.width)<=x1) && y0<=box.y && ((box.y+box.height)<=y1 && this.getAttribute("uuid")!==element.getAttribute("uuid")) ) {
-                status.canDrag=false;
-            }
-        }
-    );
+    //todo 以下代码判断时导致系统卡顿，需要优化
+    // let eleBox=element.getBBox();
+    // //与其他item的最小距离为6px,(下面计算结果可能出现为3px的情况);
+    // let x0=eventX-6,x1=x0+eleBox.width+12;
+    // let y0=eventY-6,y1=y0+eleBox.height+12;
+    // for(let x=x0;x<=x1;x=x+3){
+    //     let tmpItem=getElementByPosition(x, y0);
+    //     if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+    //         status.canDrag=false;
+    //         break;
+    //     }
+    //     tmpItem=getElementByPosition(x, y1);
+    //     if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+    //         status.canDrag=false;
+    //         break;
+    //     }
+    // }
+    // for(let y=y0;y<=y1;y=y+3){
+    //     let tmpItem=getElementByPosition(x0, y);
+    //     if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+    //         status.canDrag=false;
+    //         break;
+    //     }
+    //     tmpItem=getElementByPosition(x1, y);
+    //     if (tmpItem && element.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+    //         status.canDrag=false;
+    //         break;
+    //     }
+    // }
+    //
+    // d3.selectAll("svg>g").each(
+    //     function () {
+    //         let box = this.getBBox();
+    //         if ( x0<=box.x && ((box.x+box.width)<=x1) && y0<=box.y && ((box.y+box.height)<=y1 && this.getAttribute("uuid")!==element.getAttribute("uuid")) ) {
+    //             status.canDrag=false;
+    //         }
+    //     }
+    // );
 
     return status;
 }
@@ -722,9 +772,9 @@ function getDragStatus(eventX,eventY,element){
  * svg元素移动完的事件
  */
 function onSvgItemDragEnd() {
-    //触发后半段点击事件
-    setMiniMenu(this);
-    showPropertiesTable(this);
+    d3.event.sourceEvent.stopPropagation();
+    //触发自己的点击事件
+    $(this).click();
 }
 
 /**
@@ -740,8 +790,8 @@ function setMiniMenu(element) {
     }
     //如果是连线，则隐藏连线图标,小菜单移动到中心位置
     else if(BPMN_SEQUENCE_FLOW === element.getAttribute("type")){
-        $("#bpmn-menu-area").css("left",(parseInt($(element).attr('x1'))+parseInt($(element).attr("x2")))/2)
-            .css("top",(parseInt($(element).attr('y1'))+parseInt($(element).attr("y2")))/2);
+        $("#bpmn-menu-area").css("left",element.getBBox().x+element.getBBox().width/2)
+            .css("top",element.getBBox().y+element.getBBox().height/2);
         $("#bpmn-menu-area").show();
         $("#bpmn-menu-arrow").hide();
     }
@@ -799,13 +849,20 @@ function showPropertiesTable(element) {
  * 元素点击事件
  * @param e
  */
-function clickSvgElement(e) {
-    if (e) {//阻止点击事件向上冒泡
-        e.stopPropagation();
+function clickSvgElement(e) {debugger
+    e.stopPropagation();
+    if(e.target.getAttribute("type")&&e.target.getAttribute("type")!=="null"){
+        bindPropertiesToItem(selectSvgItem);
+        setMiniMenu(e.target);
+        showPropertiesTable(e.target);
+    }else{
+        let groupNode=e.target.parentNode;
+        if(groupNode.getAttribute("type")&&groupNode.getAttribute("type")!=="null"){
+            bindPropertiesToItem(selectSvgItem);
+            setMiniMenu(groupNode);
+            showPropertiesTable(groupNode);
+        }
     }
-    bindPropertiesToItem(selectSvgItem);
-    setMiniMenu(e.target);
-    showPropertiesTable(e.target);
 }
 
 /**
@@ -854,13 +911,19 @@ function getAutoId(uuid){
 function bindPropertiesToItem(element) {
     if (!element) {
         console.log("bind property to element error, element",element);
-        return
+        return;
+    }
+    if($('#bpmn-property-main').propertygrid('getRowIndex',$('#bpmn-property-main').propertygrid('getSelected'))!==null){
+        $('#bpmn-property-main').propertygrid('endEdit',$('#bpmn-property-main').propertygrid('getRowIndex',$('#bpmn-property-main').propertygrid('getSelected')));
     }
     //main区域的属性
     let mainData = $('#bpmn-property-main').propertygrid('getRows');
     let additionalData = [];
     //form区域的属性
     if ($('#bpmn-form-area').css("display") !== "none") {
+        if($('#bpmn-property-form').propertygrid('getRowIndex',$('#bpmn-property-form').propertygrid('getSelected'))!==null){
+            $('#bpmn-property-form').propertygrid('endEdit',$('#bpmn-property-form').propertygrid('getRowIndex',$('#bpmn-property-form').propertygrid('getSelected')));
+        }
         additionalData = $('#bpmn-property-form').propertygrid('getRows');
         //对form的属性进行处理，如果全是空，就不保存
         for(let i=additionalData.length;i>0;i=i-3){
@@ -892,13 +955,44 @@ function bindPropertiesToItem(element) {
     //组合
     mainData=mainData.concat(additionalData);
     d3.select("[type][uuid='" + element.getAttribute("uuid") + "']").datum(mainData);
-    //将id绑定到dom元素上
+    //将id绑定到g元素上
     if(mainData[0].name&&mainData[0].name==="id"){
         element.id=mainData[0].value;
     }else{
         console.log("set id to element error, id:",mainData[0].name,mainData[0].value);
     }
+    //将name绑定到text元素上
+    if(mainData[1].name&&mainData[1].name==="name"){
+        $(element).children("text").html(mainData[1].value);
+        resizeGroup(element);
+    }else{
+        console.log("set name to element error, name:",mainData[1].name,mainData[1].value);
+    }
+}
 
+/**
+ * 根据文字长度调整组内元素大小
+ * @param group
+ */
+function resizeGroup(group){
+    if(group.tagName==='g'){
+        let rect=group.children[0];
+        let text=group.children[1];
+        if($(text).html()){
+            if(rect.getBBox().width < (text.getBBox().width+40)){
+                $(rect).attr("width",text.getBBox().width+40);
+                $(text).attr("x",rect.getBBox().x+rect.getBBox().width/2);
+            }
+            if(rect.getBBox().width > (text.getBBox().width+40)){
+                $(rect).attr("width",text.getBBox().width+40);
+                $(text).attr("x",rect.getBBox().x+rect.getBBox().width/2);
+            }
+        }else{
+            $(rect).attr("width",svgWidth);
+        }
+        //重绘线条
+        reDrawPath(group);
+    }
 }
 
 /**
@@ -929,6 +1023,7 @@ function setProperties(element) {
         if(element.getAttribute("type")===BPMN_TASK_USER){
             newFormProperty(element.getAttribute("uuid"));
         }
+
         return;
     }else {
         data=data[0];
@@ -949,6 +1044,7 @@ function setProperties(element) {
     for(;dataIndex<data.length;dataIndex++ ){
         $('#bpmn-property-form').datagrid('appendRow',data[dataIndex]);
     }
+
 }
 
 /**
@@ -1294,6 +1390,7 @@ function getItemBpmn(item,bpmnProcessChilds,bpmnPlaneChilds) {
                 .replace("_y_",bbox.y);
         }else{
             //flow
+            item=$(item).find("line")[0];
             if(item.getAttribute("d")){
                 tempPlaneXml=bpmnEdge;
                 tempPlaneXml=tempPlaneXml.replace("_bpmnElement_",itemId).replace("_id_","BPMNEdge_"+itemId);

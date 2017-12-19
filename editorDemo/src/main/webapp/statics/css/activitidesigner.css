@@ -1,0 +1,67 @@
+html,body{
+    height: 98%;
+    -moz-user-select:none;
+    -webkit-user-select:none;
+    user-select:none;
+}
+svg{
+    background: url(/statics/images/bg_grid.jpg);
+}
+.bpmn-list{
+    font-size: 14px;
+    z-index: auto;
+    list-style:none;
+}
+.bpmn-icon{
+    height: 14px;
+    vertical-align: middle;
+    margin-right: 3px;
+}
+.bpmn-item-list{
+    width: 60px;
+    padding: 5px;
+    margin: 5px;
+}
+#bpmn-menu-area{
+    position: absolute;
+    left:0;
+    top:0;
+    padding: 5px 0;
+    display: none;
+}
+.bpmn-menu{
+    display: inline-block;
+    cursor:pointer;
+}
+.bpmn-properties-table{
+    width: 100%;
+    text-align: center;
+    border-right:1px solid lightskyblue;
+    border-bottom:1px solid lightskyblue;
+}
+.bpmn-properties-table tr{
+    height:20px;
+}
+.bpmn-properties-table td,.bpmn-properties-table th{
+    text-align: center;
+    border-left:1px solid lightskyblue;
+    border-top:1px solid lightskyblue;
+}
+.bpmn-properties-table input{
+    text-align: center;
+    min-height:1em;
+    border:0px;
+}
+
+svg g[type="bpmn-event-start"] rect{
+    fill:#66B3FF
+}
+svg g[type="bpmn-event-end"] rect{
+    fill:#FF5151
+}
+svg g[type="bpmn-gateway-exclusive"] rect{
+    fill:#02F78E
+}
+svg g[type="bpmn-task-user"] rect{
+    fill:#95CACA
+}
