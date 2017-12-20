@@ -1,11 +1,17 @@
-let attrReg = "((\\w+)=\"(.?|.+?)\")";
-let styleReg = "(style=\"(.?|.+?)\")";
-let styleDetailReg = "((\\w+:\\s)((.?|.+?);))";
-let attrMatcher = new RegExp(attrReg, "g");
-let styleMatcher = new RegExp(styleReg, "g");
-let styleDetailMatcher = new RegExp(styleDetailReg, "g");
+//属性匹配
+const attrReg = "((\\w+)=\"(.?|.+?)\")";
+//样式匹配
+const styleReg = "(style=\"(.?|.+?)\")";
+//样式中的某一具体属性匹配
+const styleDetailReg = "((\\w+:\\s)((.?|.+?);))";
+const attrMatcher = new RegExp(attrReg, "g");
+const styleMatcher = new RegExp(styleReg, "g");
+const styleDetailMatcher = new RegExp(styleDetailReg, "g");
 
-
+/**
+ * 将原始数据处理生成所需表单
+ * @param parseFormData
+ */
 function getTable(parseFormData) {
     let dataList = JSON.parse(parseFormData).data;
     let rawData = JSON.parse(parseFormData).parse;
@@ -210,7 +216,7 @@ function getTable(parseFormData) {
 
 /**
  * 设置表格样式
- * @param selector 表格的父元素选择器
+ * @param selector 表格的父元素的选择器
  */
 function setTableBorder(selector) {
     let select=`#${selector}`;
