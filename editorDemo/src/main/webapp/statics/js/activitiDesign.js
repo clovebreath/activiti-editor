@@ -1053,7 +1053,7 @@ function setProperties(element) {
 }
 
 /**
- * 获取svg的xml文件 todo 修改为用文件流保存到本地
+ * 获取svg的xml文件 todo 修改为保存到数据库
  */
 function getSvgFile() {
     funDownload(getBpmnOfSvg(), "designer.bpmn");

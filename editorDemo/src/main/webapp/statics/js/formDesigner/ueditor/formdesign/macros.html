@@ -57,6 +57,9 @@ function createElement(type, name)
             </td>
         </tr>
     </thead>
+    <tfoot>
+        <tr><td colspan="2" style="text-align: center">【注：此控件表现为不可编辑的输入框，自动获取信息填充。】</td></tr>
+    </tfoot>
     <tbody id='itemAttr'>
         <tr>
             <th><span>控件样式</span></th>
@@ -149,42 +152,6 @@ dialog.onok = function (){
                 return false;
             }
     } else {
-//        var norgname = oNode.getAttribute('name').replace(/\"/g,"&quot;");
-//        var oNewNode = null;
-//        domUtils.remove(oNode,false);  //删除当前控件，再创建一个新的
-        /*
-        if ( $G('orgtype').value.indexOf('sys_list') > 0 ) {
-            oNewNode = document.createElement("select");
-            var objOption = new Option('{macros}', '');
-            oNewNode.options[oNewNode.options.length] = objOption;
-        }*/
-//        oNewNode = createElement('input','leipiNewField');
-//        oNewNode.setAttribute('type','text');
-//        oNewNode.setAttribute('value','{macros}');
-//        oNewNode.setAttribute('title',gTitle);
-//        oNewNode.setAttribute('name',norgname);
-//        oNewNode.setAttribute('leipiPlugins',thePlugins );
-//        oNewNode.setAttribute('orgtype',gType);
-//        if( $G('orghide').checked ) {
-//            oNewNode.setAttribute('orghide', '1' ) ;
-//        } else {
-//            oNewNode.setAttribute('orghide', '0' ) ;
-//        }
-//        if( gFontSize != '' ) {
-//            oNewNode.style.fontSize = gFontSize + 'px';
-//            oNewNode.setAttribute('orgfontsize',gFontSize );
-//        }else{
-//            oNewNode.setAttribute('orgfontsize', '');
-//        }
-//        if( gWidth != '' ) {
-//            oNewNode.style.width = gWidth + 'px';
-//            oNewNode.setAttribute('orgwidth',gWidth );
-//        }else{
-//            oNewNode.setAttribute('orgwidth', '');
-//        }
-//        editor.execCommand('insertHtml',oNewNode.outerHTML);
-//        delete UE.plugins[thePlugins].editdom;
-
         oNode.setAttribute('type','text');
         oNode.setAttribute('value','{macros}');
         oNode.setAttribute('title',gTitle);
