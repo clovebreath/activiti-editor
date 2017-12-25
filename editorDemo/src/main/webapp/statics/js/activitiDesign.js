@@ -393,11 +393,18 @@ function iconDragStop(e) {
 }
 
 /**
- * 检查目标点是否在对话框上，如果在，则返回false，不在，返回true
+ * 检查落点是否符合生成元素的条件
  * @param posX 绝对坐标
  * @param posY 绝对坐标
  */
 function checkDragPosition(posX,posY){
+    //获取相对坐标
+    let canvasTop = $("[type='bpmn-process']").offset().top - $("body").offset().top ;
+    let canvasLeft = $("[type='bpmn-process']").offset().left - $("body").offset().left ;
+    let relativeX=posX-canvasLeft;
+    let relativeY=posY-canvasTop;
+
+    //首先检查目标点是否在对话框上，使用绝对坐标
     for(let i=0; i<$(".window").length; i++){
         let tempWindow=$(".window").eq(i);
         let windowY1=tempWindow.offset().top;
@@ -405,6 +412,30 @@ function checkDragPosition(posX,posY){
         let windowY2=tempWindow.offset().top+tempWindow.height();
         let windowX2=tempWindow.offset().left+tempWindow.width();
         if((windowX1<posX && posX<windowX2)&&(windowY1<posY && posY<windowY2)){
+            return false;
+        }
+    }
+
+    //然后判断是否有足够的空间新建一个矩形，使用相对坐标
+    let x0=relativeX-6,x1=relativeX+svgWidth+6;
+    let y0=relativeY-6,y1=relativeY+svgHeight+6;
+    for(let x=x0;x<=x1;x=x+3){
+        let tmpItem=getElementByPosition(x, y0);
+        if (tmpItem) {
+            return false;
+        }
+        tmpItem=getElementByPosition(x, y1);
+        if (tmpItem) {
+            return false;
+        }
+    }
+    for(let y=y0;y<=y1;y=y+3){
+        let tmpItem=getElementByPosition(x0, y);
+        if (tmpItem) {
+            return false;
+        }
+        tmpItem=getElementByPosition(x1, y);
+        if (tmpItem) {
             return false;
         }
     }
@@ -981,16 +1012,35 @@ function bindPropertiesToItem(element) {
  */
 function resizeGroup(group){
     if(group.tagName==='g'){
+        let textToLang=false;
         let rect=group.children[0];
         let text=group.children[1];
         if($(text).html()){
-            if(rect.getBBox().width < (text.getBBox().width+40)){
-                $(rect).attr("width",text.getBBox().width+40);
-                $(text).attr("x",rect.getBBox().x+rect.getBBox().width/2);
+            let x=rect.getBBox().x+text.getBBox().width+40;
+            let y0=rect.getBBox().y-6;
+            let y1=rect.getBBox().y+rect.getBBox().height+6;
+            //首先判断文字是否过长以致于会和其它元素相交
+            for(;y0<y1;y0=y0+3){
+                let tmpItem=getElementByPosition(x, y0);
+                if (tmpItem && group.getAttribute("uuid") !== tmpItem.getAttribute("uuid")) {
+                    textToLang=true;
+                    break;
+                }
             }
-            if(rect.getBBox().width > (text.getBBox().width+40)){
-                $(rect).attr("width",text.getBBox().width+40);
-                $(text).attr("x",rect.getBBox().x+rect.getBBox().width/2);
+
+            if(textToLang){
+                //如果文字过长，就吧显示的文字去掉一半
+                text.innerHTML=text.innerHTML.substr(0,text.innerHTML.length/2)+"..";
+                resizeGroup(group);
+            }else{
+                if(rect.getBBox().width < (text.getBBox().width+40)){
+                    $(rect).attr("width",text.getBBox().width+40);
+                    $(text).attr("x",rect.getBBox().x+rect.getBBox().width/2);
+                }
+                if(rect.getBBox().width > (text.getBBox().width+40)){
+                    $(rect).attr("width",text.getBBox().width+40);
+                    $(text).attr("x",rect.getBBox().x+rect.getBBox().width/2);
+                }
             }
         }else{
             $(rect).attr("width",svgWidth);
